@@ -22,6 +22,6 @@ func GetIP(r *http.Request) string {
 
 func HelloServer(w http.ResponseWriter, r *http.Request) {
     host, _ := os.Hostname()
-    fmt.Fprintf(w, "Hello, this is %s, and you are %s", host, GetIP(r))
+    fmt.Fprintf(w, "Hello, this is %s, and you are %s\n", host, GetIP(r))
     fmt.Fprintf(w, "This is the first autobuild test.")
 }
