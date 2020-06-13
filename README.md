@@ -22,3 +22,12 @@ $ vi deployment.yml (update old version string to new one)
 $ kubectl apply -f deployment.yml
 ```
 
+### Deploying a new version with dockerhub (CI only)
+```
+$ vi src/hello.go
+$ git tag <new version>
+$ git push --tags 
+$ # wait for build on dockerhub
+$ vi deployment.yml (update old version string to new one)
+$ kubectl apply -f deployment.yml
+```
