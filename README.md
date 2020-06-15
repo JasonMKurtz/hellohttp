@@ -54,6 +54,8 @@ $ kubectl get ingress
 NAME           HOSTS   ADDRESS          PORTS   AGE
 hellohttp-in   *       34.120.140.223   80      178m
 ```
+
+```
 $ kubectl describe ing hellohttp-in 
 Name:             hellohttp-in
 Namespace:        default
