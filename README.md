@@ -89,8 +89,17 @@ hellohttp-foo   2/2     2            2           3h55m
 ```
 
 ```
-$ kubectl get nodes
+$ kubectl get nodes # the hosts where the containers live
 NAME                                       STATUS   ROLES    AGE     VERSION
 gke-hellohttp-default-pool-541dbf73-ljlv   Ready    <none>   6h36m   v1.14.10-gke.36
 gke-hellohttp-default-pool-541dbf73-mt3f   Ready    <none>   4h25m   v1.14.10-gke.36
+```
+
+```
+$ kubectl get pods # the containers 
+NAME                             READY   STATUS    RESTARTS   AGE
+hellohttp-88f7ccdbb-sgwl2        1/1     Running   0          6h38m
+hellohttp-88f7ccdbb-ssp9b        1/1     Running   0          6h38m
+hellohttp-foo-6b455d8f4b-d7b44   1/1     Running   0          3h59m
+hellohttp-foo-6b455d8f4b-kqf9c   1/1     Running   0          178m
 ```
