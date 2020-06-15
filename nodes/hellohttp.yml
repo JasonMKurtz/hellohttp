@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Node
+metadata:
+    name: hellohttp
+    labels:
+        name: hellohttp

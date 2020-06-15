@@ -1,0 +1,19 @@
+piVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+    name: hellohttp
+    labels:
+        app: hellohttp
+spec:
+    selector:
+        matchLabels:
+            app: hellohttp
+    replicas: 2
+    template: 
+        metadata:
+            labels:
+                app: hellohttp
+        spec:
+            containers:
+            - image: jmliber/hellohttp:0.11
+              name: hellohttp
