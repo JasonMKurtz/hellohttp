@@ -4,6 +4,9 @@
 version: 2
 jobs:
   build:
+    filters:
+        tags:
+            only: /^[0-9.]+$/
     docker:
       # specify the version
       - image: circleci/golang:1.9
