@@ -103,3 +103,8 @@ hellohttp-88f7ccdbb-ssp9b        1/1     Running   0          6h38m
 hellohttp-foo-6b455d8f4b-d7b44   1/1     Running   0          3h59m
 hellohttp-foo-6b455d8f4b-kqf9c   1/1     Running   0          178m
 ```
+
+### If encountering auth errors to GKE:
+```
+$ gcloud container clusters get-credentials <cluster>
+```
