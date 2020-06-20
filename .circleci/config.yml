@@ -10,13 +10,13 @@ jobs:
       - run:
           name: Deploy Master to GKE
           command: |
+            - gcloud docker push us.gcr.io/${PROJECT_NAME}/hello 
           # Push Docker image to registry, update K8s deployment to use new image - `gcloud` command handles authentication and push all at once
-          gcloud docker push us.gcr.io/${PROJECT_NAME}/hello 
           # The new image is now available in GCR for the GCP infrastructure to access, next, change permissions:
-          sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
+          # sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
           # Use `kubectl` to find the line that specifies the image to use for our container, replace with image tag of the new image. 
           # The K8s deployment intelligently upgrades the cluster by shutting down old containers and starting up-to-date ones.
-          kubectl patch deployment docker-hello-google -p '{"spec":{"template":{"spec":{"containers":[{"name":"docker-hello-google","image":"us.gcr.io/circle-ctl-test/hello:'"$CIRCLE_SHA1"'"}]}}}}'
+          # kubectl patch deployment docker-hello-google -p '{"spec":{"template":{"spec":{"containers":[{"name":"docker-hello-google","image":"us.gcr.io/circle-ctl-test/hello:'"$CIRCLE_SHA1"'"}]}}}}'
 
 workflows:
   version: 2
