@@ -1,29 +1,29 @@
 version: 2
 orbs:
   orbs:
+    gcp-binary-authorization: circleci/gcp-binary-authorization@0.5.2
     gcp-gke: circleci/gcp-gke@1.0.4
+    gcr: circleci/gcp-gcr@0.0.2
 
 
 jobs:
-  build-job: 
-    environment:
-        TAG: 1.0."$CIRCLE_BUILD_NUM"
-        DOCKER_USER: $DOCKER_USER
-        DOCKER_PASS: $DOCKER_PASS
-    docker:
-      - image: circleci/buildpack-deps:stretch
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run: 
-          name: Build image
-          command: |
-            docker build -t jmliber/hellohttp:1.0.$CIRCLE_BUILD_NUM .
-      - run: 
-          name: Push image
-          command: | 
-            # echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            gcloud docker push us.gcr.io/${PROJECT_NAME}/hellohttp
+build-job: 
+  environment:
+      TAG: 1.0."$CIRCLE_BUILD_NUM"
+      DOCKER_USER: $DOCKER_USER
+      DOCKER_PASS: $DOCKER_PASS
+  docker:
+    - image: circleci/buildpack-deps:stretch
+  steps:
+    - gcr/gcr-auth 
+    - checkout
+    - setup_remote_docker
+    - run: 
+        name: Build image
+        command: |
+          docker build -t jmliber/hellohttp:1.0.$CIRCLE_BUILD_NUM .
+    - gcr/push-image
+        image: jmliber/hellohttp
   deploy-job:
     docker:
       - image: hellohttp
@@ -42,6 +42,13 @@ jobs:
 
 workflows:
   version: 2
+  setup_binary_authorization:
+    jobs:
+      - bin-authz/run-setup:
+          gke-cluster-name: hellohttp
+          keypair-email: jason@jkurtz.net
+          keypair-name: circleci
+          use-existing-keypair: false
   build-deploy:
     jobs:
       - build-job 
