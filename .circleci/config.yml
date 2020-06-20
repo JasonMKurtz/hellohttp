@@ -3,7 +3,7 @@ version: 2
 jobs:
   build-job: 
     docker:
-      - image: golang:1
+      - image: docker
     steps:
       - checkout
       - run: |
