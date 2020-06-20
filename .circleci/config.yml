@@ -22,9 +22,8 @@ jobs:
       - run: 
           name: Push image
           command: | 
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            docker push jmliber/hellohttp:1.0.$CIRCLE_BUILD_NUM
-  # build job ommitted for brevity
+            # echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            gcloud docker push us.gcr.io/${PROJECT_NAME}/hellohttp
   deploy-job:
     docker:
       - image: hellohttp
@@ -33,7 +32,7 @@ jobs:
       - run:
           name: Deploy Master to GKE
           command: |
-            - gcloud docker push us.gcr.io/${PROJECT_NAME}/hello 
+            -
           # Push Docker image to registry, update K8s deployment to use new image - `gcloud` command handles authentication and push all at once
           # The new image is now available in GCR for the GCP infrastructure to access, next, change permissions:
           # sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
