@@ -1,31 +1,31 @@
 package main
 
 import (
-    "encoding/json"
-    "fmt"
-    "io/ioutil"
-    "net/http"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 )
 
 type DockerHubToken struct {
-    Token string
-    Expires_In int
-    Issued_At string
+	Token      string
+	Expires_In int
+	Issued_At  string
 }
 
 type DockerHubRepoInfo struct {
-    Name string
-    Tags []string
+	Name string
+	Tags []string
 }
 
 func Filter(vs []string, f func(string) bool) []string {
-    vsf := make([]string, 0)
-    for _, v := range vs {
-        if f(v) {
-            vsf = append(vsf, v)
-        }
-    }
-    return vsf
+	vsf := make([]string, 0)
+	for _, v := range vs {
+		if f(v) {
+			vsf = append(vsf, v)
+		}
+	}
+	return vsf
 }
 
 func Max(tags []string) string {
@@ -40,37 +40,37 @@ func Max(tags []string) string {
 }
 
 func GetTags(token string) []string {
-    req, _ := http.NewRequest("GET", "https://registry.hub.docker.com/v2/jmliber/hellohttp/tags/list", nil)
-    req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-    client := &http.Client{}
-    resp, _ := client.Do(req)
-    defer resp.Body.Close()
+	req, _ := http.NewRequest("GET", "https://registry.hub.docker.com/v2/jmliber/hellohttp/tags/list", nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	client := &http.Client{}
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
 
-    text, _ := ioutil.ReadAll(resp.Body)
+	text, _ := ioutil.ReadAll(resp.Body)
 
-    var taginfo DockerHubRepoInfo
-    json.Unmarshal(text, &taginfo)
+	var taginfo DockerHubRepoInfo
+	json.Unmarshal(text, &taginfo)
 
-    return taginfo.Tags
+	return taginfo.Tags
 }
 
 func main() {
-    tags := GetTags(GetToken().Token)
+	tags := GetTags(GetToken().Token)
 	ignoreLatest := Filter(tags, func(v string) bool { return v != "latest" })
 	latest := Max(ignoreLatest)
-    fmt.Println(latest)
+	fmt.Println(latest)
 }
 
 func GetToken() DockerHubToken {
-    resp, err := http.Get("https://auth.docker.io/token?service=registry.docker.io&scope=repository:jmliber/hellohttp:pull")
-    if err != nil {
-        panic(err)
-    }
-    defer resp.Body.Close()
+	resp, err := http.Get("https://auth.docker.io/token?service=registry.docker.io&scope=repository:jmliber/hellohttp:pull")
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
 
-    text, err := ioutil.ReadAll(resp.Body)
+	text, err := ioutil.ReadAll(resp.Body)
 
-    var token DockerHubToken
-    json.Unmarshal(text, &token)
-    return token
+	var token DockerHubToken
+	json.Unmarshal(text, &token)
+	return token
 }
