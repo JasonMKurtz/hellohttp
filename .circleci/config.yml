@@ -6,6 +6,10 @@ orbs:
 
 jobs:
   build-job: 
+    environment:
+        TAG: 1.0.$CIRCLE_BUILD_NUM
+        DOCKER_USER: "$DOCKER_USER"
+        DOCKER_PASS: "$DOCKER_PASS"
     docker:
       - image: circleci/buildpack-deps:stretch
     steps:
@@ -14,11 +18,11 @@ jobs:
       - run: 
           name: Build image
           command: |
-            TAG=1.0.$CIRCLE_BUILD_NUM
             docker build -t jmliber/hellohttp:$TAG .
       - run: 
           name: Push image
           command: | 
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
             docker push jmliber/hellohttp:$TAG 
   # build job ommitted for brevity
   deploy-job:
