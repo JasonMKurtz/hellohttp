@@ -19,7 +19,7 @@ type DockerHubRepoInfo struct {
 }
 
 func Filter(vs []string, f func(string) bool) []string {
-	vsf := make([]string, 0)
+    var vsf []string
 	for _, v := range vs {
 		if f(v) {
 			vsf = append(vsf, v)
