@@ -32,6 +32,12 @@ $ vi deployment.yml (update old version string to new one)
 $ kubectl apply -f deployment.yml
 ```
 
+### Get latest image version
+```
+$ go run cli/get-latest.go --image hellohttp
+1.2
+```
+
 --- GKE (Google K8S Engine) ---
 ### Setup
 We need
@@ -108,3 +114,4 @@ hellohttp-foo-6b455d8f4b-kqf9c   1/1     Running   0          178m
 ```
 $ gcloud container clusters get-credentials <cluster>
 ```
+
