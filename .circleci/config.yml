@@ -3,7 +3,7 @@ version: 2
 jobs:
   build-job: 
     docker:
-      - image: hellohttp
+      - image: circleci/golang:1.13-alpine
     steps:
       - checkout
       - run: |
