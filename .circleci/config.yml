@@ -43,6 +43,14 @@ jobs:
 
 workflows:
   version: 2
+  auth: 
+    jobs:
+      - gcp-binary-authorization:
+          gke-cluster-name: hellohttp-a
+          keypair-email: circleci@hellohttp-a.iam.gserviceaccount.com
+          keypair-name: hellohttp
+          use-existing-keypair: true
+
   build-deploy:
     jobs:
       - build-job 
