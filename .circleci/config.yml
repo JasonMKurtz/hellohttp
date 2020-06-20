@@ -21,7 +21,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - docker/build:
-          image: jmliber/hellohttp
+          image: gcr.io/hellohttp/hellohttp
           tag: 1.0.$CIRCLE_BUILD_NUM
       - gcr/push-image:
           image: hellohttp
