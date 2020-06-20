@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 orbs:
   gcp-binary-authorization: circleci/gcp-binary-authorization@0.5.2
   gcp-gke: circleci/gcp-gke@1.0.4
