@@ -12,7 +12,6 @@ jobs:
         TAG: 1.0."$CIRCLE_BUILD_NUM"
         DOCKER_USER: $DOCKER_USER
         DOCKER_PASS: $DOCKER_PASS
-        GCLOUD_SERVICE_KEY: $GCLOUD_SERVICE_KEY
     docker:
       - image: circleci/buildpack-deps:stretch
     steps:
