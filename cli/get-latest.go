@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+    "flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,6 +17,7 @@ type DockerHubToken struct {
 type DockerHubRepoInfo struct {
 	Name string
 	Tags []string
+    Errors []string
 }
 
 func Filter(vs []string, f func(string) bool) []string {
@@ -29,7 +31,11 @@ func Filter(vs []string, f func(string) bool) []string {
 }
 
 func Max(tags []string) string {
-	maxver := "0.0"
+    if len(tags) == 0 {
+        return ""
+    }
+
+	maxver := "-1"
 	for _, v := range tags {
 		if v > maxver {
 			maxver = v
@@ -39,11 +45,16 @@ func Max(tags []string) string {
 	return maxver
 }
 
-func GetTags(token string) []string {
-	req, _ := http.NewRequest("GET", "https://registry.hub.docker.com/v2/jmliber/hellohttp/tags/list", nil)
+func GetTags(image string, token string) []string {
+    url := fmt.Sprintf("https://registry.hub.docker.com/v2/jmliber/%s/tags/list", image)
+	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	client := &http.Client{}
-	resp, _ := client.Do(req)
+	resp, err := client.Do(req)
+    if err != nil {
+        panic(err)
+    }
+
 	defer resp.Body.Close()
 
 	text, _ := ioutil.ReadAll(resp.Body)
@@ -55,14 +66,20 @@ func GetTags(token string) []string {
 }
 
 func main() {
-	tags := GetTags(GetToken().Token)
+    image := flag.String("image", "hellohttp", "The image to pull tags from.")
+    flag.Parse()
+
+    token := GetToken(*image).Token
+	tags := GetTags(*image, token)
+
 	ignoreLatest := Filter(tags, func(v string) bool { return v != "latest" })
 	latest := Max(ignoreLatest)
 	fmt.Println(latest)
 }
 
-func GetToken() DockerHubToken {
-	resp, err := http.Get("https://auth.docker.io/token?service=registry.docker.io&scope=repository:jmliber/hellohttp:pull")
+func GetToken(image string) DockerHubToken {
+    url := fmt.Sprintf("https://auth.docker.io/token?service=registry.docker.io&scope=repository:jmliber/%s:pull", image)
+	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
 	}
