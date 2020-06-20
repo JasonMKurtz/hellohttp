@@ -1,9 +1,8 @@
 version: 2
 orbs:
-  orbs:
-    gcp-binary-authorization: circleci/gcp-binary-authorization@0.5.2
-    gcp-gke: circleci/gcp-gke@1.0.4
-    gcr: circleci/gcp-gcr@0.0.2
+  gcp-binary-authorization: circleci/gcp-binary-authorization@0.5.2
+  gcp-gke: circleci/gcp-gke@1.0.4
+  gcr: circleci/gcp-gcr@0.0.2
 
 
 jobs:
