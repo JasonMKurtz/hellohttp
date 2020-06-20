@@ -9,13 +9,12 @@ orbs:
 jobs:
   build-job: 
     environment:
-      TAG: 1.0."$CIRCLE_BUILD_NUM"
-      DOCKER_USER: $DOCKER_USER
-      DOCKER_PASS: $DOCKER_PASS
+        TAG: 1.0."$CIRCLE_BUILD_NUM"
+        DOCKER_USER: $DOCKER_USER
+        DOCKER_PASS: $DOCKER_PASS
     docker:
       - image: circleci/buildpack-deps:stretch
     steps:
-      - gcr/gcr-auth 
       - checkout
       - setup_remote_docker
       - run: 
@@ -29,6 +28,7 @@ jobs:
       - image: hellohttp
     working_directory: /tmp/my-project  
     steps:
+      - gcr/gcr-auth 
       - run:
           name: Deploy Master to GKE
           command: |
