@@ -22,7 +22,7 @@ build-job:
         name: Build image
         command: |
           docker build -t jmliber/hellohttp:1.0.$CIRCLE_BUILD_NUM .
-    - gcr/push-image
+    - gcr/push-image:
         image: jmliber/hellohttp
   deploy-job:
     docker:
