@@ -3,7 +3,7 @@ version: 2
 jobs:
   build-job: 
     docker:
-      - image: circleci/golang:1.13-alpine
+      - image: golang:1
     steps:
       - checkout
       - run: |
