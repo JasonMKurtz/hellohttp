@@ -12,6 +12,8 @@ jobs:
         TAG: 1.0."$CIRCLE_BUILD_NUM"
         DOCKER_USER: $DOCKER_USER
         DOCKER_PASS: $DOCKER_PASS
+        GOOGLE_PROJECT_ID: hellohttp-a
+        GOOGLE_COMPUTE_ZONE: central
     docker:
       - image: circleci/buildpack-deps:stretch
     steps:
