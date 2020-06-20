@@ -15,6 +15,7 @@ jobs:
     docker:
       - image: circleci/buildpack-deps:stretch
     steps:
+      - gcr/gcr-auth 
       - checkout
       - setup_remote_docker
       - docker/build:
@@ -28,7 +29,6 @@ jobs:
       - image: hellohttp
     working_directory: /tmp/my-project  
     steps:
-      - gcr/gcr-auth 
       - run:
           name: Deploy Master to GKE
           command: |
