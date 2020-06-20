@@ -1,43 +1,31 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
-orbs:
-  orbs:
-    gcp-gke: circleci/gcp-gke@1.0.4
-
-workflows:
-  main:
-    jobs:
-      - gke/publish-and-rollout-image:
-        cluster: hellohttp-b
-        container: hellohttp
-        deployment: hellohttp
-        image: jmliber/hellohttp
 
 jobs:
-  build:
-    filters:
-        tags:
-            only: /^[0-9.]+$/
+  # build job ommitted for brevity
+  deploy-job:
     docker:
-      # specify the version
-      - image: circleci/golang:1.9
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
-    #### expecting it in the form of
-    ####   /go/src/github.com/circleci/go-tool
-    ####   /go/src/bitbucket.org/circleci/go-tool
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+      - image: hellohttp
+    working_directory: /tmp/my-project  
     steps:
-      - checkout
+      - run:
+          name: Deploy Master to GKE
+          command: |
+          # Push Docker image to registry, update K8s deployment to use new image - `gcloud` command handles authentication and push all at once
+          gcloud docker push us.gcr.io/${PROJECT_NAME}/hello 
+          # The new image is now available in GCR for the GCP infrastructure to access, next, change permissions:
+          sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
+          # Use `kubectl` to find the line that specifies the image to use for our container, replace with image tag of the new image. 
+          # The K8s deployment intelligently upgrades the cluster by shutting down old containers and starting up-to-date ones.
+          kubectl patch deployment docker-hello-google -p '{"spec":{"template":{"spec":{"containers":[{"name":"docker-hello-google","image":"us.gcr.io/circle-ctl-test/hello:'"$CIRCLE_SHA1"'"}]}}}}'
 
-      # specify any bash command here prefixed with `run: `
-      - run: go get -v -t -d ./...
-      - run: go test -v ./...
-  
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build-job 
+      - deploy-job:
+          requires:
+            - build-job # Only deploy once the build job has completed
+          filters:
+            branches:
+              only: master # Only deploy on the master branch
