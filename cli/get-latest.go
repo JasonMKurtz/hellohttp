@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-    "flag"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -15,13 +15,13 @@ type DockerHubToken struct {
 }
 
 type DockerHubRepoInfo struct {
-	Name string
-	Tags []string
-    Errors []string
+	Name   string
+	Tags   []string
+	Errors []string
 }
 
 func Filter(vs []string, f func(string) bool) []string {
-    var vsf []string
+	var vsf []string
 	for _, v := range vs {
 		if f(v) {
 			vsf = append(vsf, v)
@@ -31,9 +31,9 @@ func Filter(vs []string, f func(string) bool) []string {
 }
 
 func Max(tags []string) string {
-    if len(tags) == 0 {
-        return ""
-    }
+	if len(tags) == 0 {
+		return ""
+	}
 
 	maxver := "-1"
 	for _, v := range tags {
@@ -46,14 +46,14 @@ func Max(tags []string) string {
 }
 
 func GetTags(image string, token string) []string {
-    url := fmt.Sprintf("https://registry.hub.docker.com/v2/jmliber/%s/tags/list", image)
+	url := fmt.Sprintf("https://registry.hub.docker.com/v2/jmliber/%s/tags/list", image)
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	client := &http.Client{}
 	resp, err := client.Do(req)
-    if err != nil {
-        panic(err)
-    }
+	if err != nil {
+		panic(err)
+	}
 
 	defer resp.Body.Close()
 
@@ -66,10 +66,10 @@ func GetTags(image string, token string) []string {
 }
 
 func main() {
-    image := flag.String("image", "hellohttp", "The image to pull tags from.")
-    flag.Parse()
+	image := flag.String("image", "hellohttp", "The image to pull tags from.")
+	flag.Parse()
 
-    token := GetToken(*image).Token
+	token := GetToken(*image).Token
 	tags := GetTags(*image, token)
 
 	ignoreLatest := Filter(tags, func(v string) bool { return v != "latest" })
@@ -78,7 +78,7 @@ func main() {
 }
 
 func GetToken(image string) DockerHubToken {
-    url := fmt.Sprintf("https://auth.docker.io/token?service=registry.docker.io&scope=repository:jmliber/%s:pull", image)
+	url := fmt.Sprintf("https://auth.docker.io/token?service=registry.docker.io&scope=repository:jmliber/%s:pull", image)
 	resp, err := http.Get(url)
 	if err != nil {
 		panic(err)
