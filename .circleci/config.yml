@@ -7,7 +7,7 @@ orbs:
 jobs:
   build-job: 
     docker:
-      - image: docker
+      - image: circleci/buildpack-deps:stretch
     steps:
       - checkout
       - run: |
