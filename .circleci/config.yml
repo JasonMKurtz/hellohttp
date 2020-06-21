@@ -10,7 +10,7 @@ jobs:
   build-and-deploy: 
     environment:
         GOOGLE_PROJECT_ID: hellohttp-a
-        GOOGLE_COMPUTE_ZONE: central
+        GOOGLE_COMPUTE_ZONE: us-central1-c
     docker:
       - image: circleci/buildpack-deps:stretch
     steps:
