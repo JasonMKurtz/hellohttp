@@ -32,9 +32,8 @@ jobs:
       - image: circleci/buildpack-deps:stretch
     working_directory: /tmp/hellohttp
     steps:
+      - gcr/gcr-auth 
       - setup_remote_docker
-      - run:
-          command: gcloud config set account circleci
       - gcp-gke/rollout-image:
           cluster: hellohttp-b 
           container: hellohttp
