@@ -9,6 +9,7 @@ $ git commit -am "Code change"
 $ git push 
 ... Watch circleci pipeline ... 
 $ curl http://hellohttp.jkurtz.net # observe code change
+```
 
 
 ### Running the go app
