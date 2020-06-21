@@ -2,6 +2,14 @@
 
 This repository stores a simple "hello world" golang web app and the configuration needed to dockerize it.
 
+### Build & Deploy 
+```
+$ vi src/hello.go 
+$ git commit -am "Code change"
+$ git push 
+... Watch circleci pipeline ... 
+$ curl http://hellohttp.jkurtz.net # observe code change
+
 
 ### Running the go app
 ```
