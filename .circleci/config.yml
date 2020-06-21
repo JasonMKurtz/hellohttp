@@ -52,7 +52,7 @@ workflows:
       - deploy-job:
           requires:
             - build-job # Only deploy once the build job has completed
-          filters:
+          filters: # only deploy a tagged release
             tags:
                 only: /^([0-9]+)$/
             branches:
