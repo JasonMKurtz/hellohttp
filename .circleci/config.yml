@@ -7,11 +7,8 @@ orbs:
   kube-orb: circleci/kubernetes@0.11.0
 
 jobs:
-  build-job: 
+  build-and-deploy: 
     environment:
-        TAG: 1.0."$CIRCLE_BUILD_NUM"
-        DOCKER_USER: $DOCKER_USER
-        DOCKER_PASS: $DOCKER_PASS
         GOOGLE_PROJECT_ID: hellohttp-a
         GOOGLE_COMPUTE_ZONE: central
     docker:
@@ -26,16 +23,6 @@ jobs:
       - gcr/push-image:
           image: hellohttp
           tag: 1.0.<< pipeline.number >> 
-  deploy-job:
-    environment:
-        GOOGLE_PROJECT_ID: hellohttp-a
-        GOOGLE_COMPUTE_ZONE: us-central1-c
-    docker:
-      - image: circleci/buildpack-deps:stretch
-    working_directory: /tmp/hellohttp
-    steps:
-      - gcr/gcr-auth 
-      - setup_remote_docker
       - kube-orb/install 
       - gcp-gke/rollout-image:
           cluster: hellohttp-b 
@@ -44,14 +31,28 @@ jobs:
           image: gcr.io/hellohttp-a/hellohttp
           tag: 1.0.<< pipeline.number >> 
 
+#  deploy-job:
+#    environment:
+#        GOOGLE_PROJECT_ID: hellohttp-a
+#        GOOGLE_COMPUTE_ZONE: us-central1-c
+#    docker:
+#      - image: circleci/buildpack-deps:stretch
+#    steps:
+#      - gcr/gcr-auth 
+#      - setup_remote_docker
+#      - kube-orb/install 
+#      - gcp-gke/rollout-image:
+#          cluster: hellohttp-b 
+#          container: hellohttp
+#          deployment: hellohttp
+#          image: gcr.io/hellohttp-a/hellohttp
+#          tag: 1.0.<< pipeline.number >> 
+
 workflows:
   version: 2
   build-deploy:
     jobs:
-      - build-job 
-      - deploy-job:
-          requires:
-            - build-job # Only deploy once the build job has completed
-          filters: # only deploy a tagged release
-            tags:
-                only: /^([0-9]+)$/
+      - build-and-deploy
+#          filters: # only deploy a tagged release
+#            tags:
+#                only: /^([0-9]+)$/
