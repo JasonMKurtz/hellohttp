@@ -34,7 +34,8 @@ jobs:
     steps:
       - kube-orb/install-kubectl
       - kube-orb/update-container-image:
-          container-image-updates: 'hellohttp=hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM'
+          container-image-updates: "hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM"
+          resource-name: "deployment/hellohttp"
           record: true
           #command: kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
           # Push Docker image to registry, update K8s deployment to use new image - `gcloud` command handles authentication and push all at once
