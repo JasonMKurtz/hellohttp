@@ -37,6 +37,7 @@ jobs:
     steps:
       - gcr/gcr-auth 
       - setup_remote_docker
+      - kube-orb/install 
       - gcp-gke/rollout-image:
           cluster: hellohttp-b 
           container: hellohttp
