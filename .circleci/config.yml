@@ -32,11 +32,14 @@ jobs:
       - image: circleci/buildpack-deps:stretch
     working_directory: /tmp/hellohttp
     steps:
-      # - setup_remote_docker
-      - docker/install-docker
-      - kube-orb/install-kubectl
-      - run:
-          kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
+      - setup_remote_docker
+      - gcp-gke/rollout-image:
+        cluster: hellohttp-b 
+        container: hellohttp
+        deployment: hellohttp
+        image: gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
+      # - run:
+          # kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
           #command: kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
           # Push Docker image to registry, update K8s deployment to use new image - `gcloud` command handles authentication and push all at once
           # The new image is now available in GCR for the GCP infrastructure to access, next, change permissions:
