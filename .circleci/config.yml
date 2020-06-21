@@ -6,11 +6,6 @@ orbs:
   gcr: circleci/gcp-gcr@0.7.1
   kube-orb: circleci/kubernetes@0.11.0
 
-executors:
-  fs:
-    docker:
-      - image: buildpack-deps:jessie
-
 jobs:
   build-job: 
     executor: fs
@@ -28,17 +23,15 @@ jobs:
       - setup_remote_docker
       - docker/build:
           image: gcr.io/hellohttp-a/hellohttp
-          tag: 1.0.$CIRCLE_BUILD_NUM
+          tag: 1.0.<< pipeline.id >>
       - gcr/push-image:
           image: hellohttp
-          tag: 1.0.$CIRCLE_BUILD_NUM
-      - run: echo 1.0.$CIRCLE_BUILD_NUM > /tmp/workspace/BUILD_ID
+          tag: 1.0.<< pipeline.id >> 
   deploy-job:
     executor: fs
     environment:
         GOOGLE_PROJECT_ID: hellohttp-a
         GOOGLE_COMPUTE_ZONE: us-central1-c
-        BUILD_NUM: $CIRCLE_BUILD_NUM
     docker:
       - image: circleci/buildpack-deps:stretch
     working_directory: /tmp/hellohttp
@@ -46,17 +39,12 @@ jobs:
       - gcr/gcr-auth 
       - setup_remote_docker
       - kube-orb/install 
-      - attach_workspace:
-          at: /tmp/workspace
-      - run: 
-          name: Read build id 
-          command: export BUILD_ID=$(cat BUILD_ID)
       - gcp-gke/rollout-image:
           cluster: hellohttp-b 
           container: hellohttp
           deployment: hellohttp
           image: gcr.io/hellohttp-a/hellohttp
-          tag: $BUILD_ID
+          tag: 1.0.<< pipeline.id >> 
       # - run:
           # kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
           #command: kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
