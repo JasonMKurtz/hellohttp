@@ -33,7 +33,7 @@ jobs:
     working_directory: /tmp/hellohttp
     steps:
       - kube-orb/install-kubectl
-      - kube-org/deployment-update:
+      - kube-orb/deployment-update:
           container-image-updates: 'hellohttp=hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM'
           record: true
           #command: kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
