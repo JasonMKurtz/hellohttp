@@ -4,6 +4,7 @@ orbs:
   gcp-auth: circleci/gcp-binary-authorization@0.5.2
   gcp-gke: circleci/gcp-gke@1.0.4
   gcr: circleci/gcp-gcr@0.7.1
+  kubernetes: circleci/kubernetes@0.11.0
 
 
 jobs:
@@ -31,9 +32,11 @@ jobs:
       - image: circleci/buildpack-deps:stretch
     working_directory: /tmp/hellohttp
     steps:
-      - run:
-          name: Deploy Master to GKE
-          command: kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
+      - kube-orb/install-kubectl
+      - kube-org/deployment-update:
+          container-image-updates: 'hellohttp=hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM'
+          record: true
+          #command: kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
           # Push Docker image to registry, update K8s deployment to use new image - `gcloud` command handles authentication and push all at once
           # The new image is now available in GCR for the GCP infrastructure to access, next, change permissions:
           # sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
