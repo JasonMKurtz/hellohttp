@@ -33,6 +33,8 @@ jobs:
     working_directory: /tmp/hellohttp
     steps:
       - setup_remote_docker
+      - run:
+          command: gcloud config set account circleci
       - gcp-gke/rollout-image:
           cluster: hellohttp-b 
           container: hellohttp
