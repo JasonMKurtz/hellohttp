@@ -22,10 +22,10 @@ jobs:
       - setup_remote_docker
       - docker/build:
           image: gcr.io/hellohttp-a/hellohttp
-          tag: 1.0.<< pipeline.id >>
+          tag: 1.0.<< pipeline.number >>
       - gcr/push-image:
           image: hellohttp
-          tag: 1.0.<< pipeline.id >> 
+          tag: 1.0.<< pipeline.number >> 
   deploy-job:
     environment:
         GOOGLE_PROJECT_ID: hellohttp-a
@@ -42,16 +42,7 @@ jobs:
           container: hellohttp
           deployment: hellohttp
           image: gcr.io/hellohttp-a/hellohttp
-          tag: 1.0.<< pipeline.id >> 
-      # - run:
-          # kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
-          #command: kubectl set image deployment hellohttp hellohttp=gcr.io/hellohttp-a/hellohttp:1.0.$CIRCLE_BUILD_NUM
-          # Push Docker image to registry, update K8s deployment to use new image - `gcloud` command handles authentication and push all at once
-          # The new image is now available in GCR for the GCP infrastructure to access, next, change permissions:
-          # sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
-          # Use `kubectl` to find the line that specifies the image to use for our container, replace with image tag of the new image. 
-          # The K8s deployment intelligently upgrades the cluster by shutting down old containers and starting up-to-date ones.
-          # kubectl patch deployment docker-hello-google -p '{"spec":{"template":{"spec":{"containers":[{"name":"docker-hello-google","image":"us.gcr.io/circle-ctl-test/hello:'"$CIRCLE_SHA1"'"}]}}}}'
+          tag: 1.0.<< pipeline.number >> 
 
 workflows:
   version: 2
@@ -62,5 +53,5 @@ workflows:
           requires:
             - build-job # Only deploy once the build job has completed
           filters:
-            branches:
-                only: master # Only deploy on the master branch
+            tags:
+                only: /^([0-9]+)$/
