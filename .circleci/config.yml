@@ -55,5 +55,3 @@ workflows:
           filters: # only deploy a tagged release
             tags:
                 only: /^([0-9]+)$/
-            branches:
-                ignore: master
