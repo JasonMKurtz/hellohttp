@@ -4,7 +4,7 @@ orbs:
   gcp-auth: circleci/gcp-binary-authorization@0.5.2
   gcp-gke: circleci/gcp-gke@1.0.4
   gcr: circleci/gcp-gcr@0.7.1
-  kubernetes: circleci/kubernetes@0.11.0
+  kube-orb: circleci/kubernetes@0.11.0
 
 
 jobs:
