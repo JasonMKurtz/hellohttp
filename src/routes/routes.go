@@ -5,18 +5,32 @@ import (
 	"net/http"
 )
 
+type RouteHandler func(w http.ResponseWriter, r *http.Request)
+
 type Route struct {
 	route   string
-	handler func(w http.ResponseWriter, r *http.Request)
+	handler RouteHandler
 }
 
 type Routes struct {
-	routes []Route
-	port   string
+	routes  []Route
+	port    string
+	missing RouteHandler
 }
 
 func (r *Routes) addRoute(route Route) {
 	r.routes = append(r.routes, route)
+}
+
+func (r *Routes) addDefaultRoute(h RouteHandler) {
+	r.addRoute(Route{
+		route:   "/",
+		handler: h,
+	})
+}
+
+func (r *Routes) add404Route(h RouteHandler) {
+	r.missing = h
 }
 
 func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -27,12 +41,19 @@ func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	if r.missing != nil {
+		r.missing(w, req)
+		return
+	}
+
 	http.NotFound(w, req)
 	return
 }
 
 func main() {
-	r := &Routes{port: "8000"}
+	r := &Routes{port: "8080"}
+	r.addDefaultRoute(HandleHello)
+	r.add404Route(Missing)
 	r.addRoute(Route{route: "/hello", handler: HandleHello})
 	r.addRoute(Route{route: "/bar", handler: HandleBar})
 
@@ -43,8 +64,12 @@ func main() {
 	}
 }
 
+func Missing(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, r.URL.Path+" was requested but not found.")
+}
+
 func HandleHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, this is /hello!")
+	fmt.Fprintf(w, "Hello, this might be /hello!")
 }
 
 func HandleBar(w http.ResponseWriter, r *http.Request) {
