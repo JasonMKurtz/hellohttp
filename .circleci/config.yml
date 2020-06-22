@@ -18,17 +18,17 @@ jobs:
       - checkout
       - setup_remote_docker
       - docker/build:
-          image: gcr.io/hellohttp-a/hellohttp
+          image: gcr.io/hellohttp-a/hello2
           tag: 1.0.<< pipeline.number >>
       - gcr/push-image:
-          image: hellohttp
+          image: hello2
           tag: 1.0.<< pipeline.number >> 
       - kube-orb/install 
       - gcp-gke/rollout-image:
           cluster: hellohttp-b 
           container: hellohttp
           deployment: hellohttp
-          image: gcr.io/hellohttp-a/hellohttp
+          image: gcr.io/hellohttp-a/hello2
           tag: 1.0.<< pipeline.number >> 
 
 #  deploy-job:
