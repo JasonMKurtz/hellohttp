@@ -6,4 +6,4 @@ spec:
     selector:
         app: hellohttp-backend
     ports: 
-        - port: 9001
+        - port: 80

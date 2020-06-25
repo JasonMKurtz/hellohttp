@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	r := &Routes{port: "9001"}
+	r := &Routes{port: "80"}
 	r.routes = []Route{
 		Route{"/api/foo", HandleFoo},
 	}

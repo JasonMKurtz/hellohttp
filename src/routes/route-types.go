@@ -43,6 +43,10 @@ func (r *Routes) add404Route(h RouteHandler) {
 }
 
 func (r *Routes) addService(name string, port int) {
+	if r.services == nil {
+		r.services = make(map[string]Service)
+	}
+
 	r.services[name] = Service{name, port}
 }
 

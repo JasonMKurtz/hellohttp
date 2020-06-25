@@ -15,5 +15,5 @@ spec:
                 app: hellohttp-backend
         spec:
             containers:
-            - image: jmliber/hello-backend:0.1
+            - image: jmliber/hello-backend:0.2
               name: hellohttp-backend
