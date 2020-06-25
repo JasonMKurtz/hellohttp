@@ -15,5 +15,5 @@ spec:
                 app: hellohttp
         spec:
             containers:
-            - image: jmliber/hello2:1.0
+            - image: jmliber/hello2:1.8
               name: hellohttp

@@ -2,74 +2,41 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"regexp"
 )
 
-type RouteHandler func(w http.ResponseWriter, r *http.Request, route string)
-
-type Route struct {
-	route   string
-	handler RouteHandler
-}
-
-type Routes struct {
-	routes  []Route
-	port    string
-	primary RouteHandler
-	missing RouteHandler
-}
-
-func (r *Routes) addRoute(route Route) {
-	r.routes = append(r.routes, route)
-}
-
-func (r *Routes) addDefaultRoute(h RouteHandler) {
-	r.primary = h
-}
-
-func (r *Routes) add404Route(h RouteHandler) {
-	r.missing = h
-}
-
-func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	for _, route := range r.routes {
-		reg, _ := regexp.Compile(route.route)
-		path := req.URL.Path
-		if path == "/" && r.primary != nil {
-			r.primary(w, req, "/")
-			return
-		} else if reg.MatchString(path) {
-			route.handler(w, req, route.route)
-			return
-		}
-	}
-
-	if r.missing != nil {
-		r.missing(w, req, "")
-		return
-	}
-
-	http.NotFound(w, req)
-	return
-}
+var app Routes
 
 func main() {
-	r := &Routes{port: "8080", primary: HandleHello, missing: Missing}
-	r.addRoute(Route{route: "/hello", handler: HandleHello})
-	r.addRoute(Route{route: "/bar", handler: HandleBar})
-	r.addRoute(Route{route: "^/greet/(?P<name>.+)$", handler: Greet})
-
-	fmt.Printf("Listening on :%s...\n", r.port)
-	err := http.ListenAndServe(fmt.Sprintf(":%s", r.port), r)
-	if err != nil {
-		fmt.Printf("%s\n", err)
+	app = Routes{port: "8080", primary: HandleHello, missing: Missing}
+	app.routes = []Route{
+		Route{"/hello", HandleHello},
+		Route{"/bar", HandleBar},
+		Route{"^/greet/(?P<name>.+)$", Greet},
 	}
+
+	app.addService("hellohttp-backend", 9001)
+
+	app.Listen()
 }
 
 func Greet(w http.ResponseWriter, r *http.Request, route string) {
 	reg := &JRegex{route, r.URL.Path}
 	fmt.Fprintf(w, "Hello %s!\n", reg.GetNamedGroups()["name"])
+
+	backend := app.services["hellohttp-backend"]
+
+	resp, err := http.Get(fmt.Sprintf("%s/api/foo", backend.getString()))
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Fprintf(w, "Backend response: %s\n", body)
 }
 
 func Missing(w http.ResponseWriter, r *http.Request, route string) {

@@ -5,11 +5,11 @@ metadata:
 spec:
     backend:
         serviceName: hellohttp
-        servicePort: 8080
+        servicePort: 80
     rules:
     - http:
         paths:
-        - path: /foo
+        - path: /api
           backend:
-            serviceName: hellohttp-foo
-            servicePort: 8080
+            serviceName: hellohttp-backend
+            servicePort: 9001
