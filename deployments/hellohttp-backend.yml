@@ -1,0 +1,19 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+    name: hellohttp-backend
+    labels:
+        app: hellohttp-backend
+spec:
+    selector:
+        matchLabels:
+            app: hellohttp-backend
+    replicas: 2
+    template: 
+        metadata:
+            labels:
+                app: hellohttp-backend
+        spec:
+            containers:
+            - image: jmliber/hello-backend:0.1
+              name: hellohttp-backend
