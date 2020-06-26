@@ -27,7 +27,7 @@ type Service struct {
 }
 
 func (s *Service) getString() string {
-	return fmt.Sprintf("http://%s:%s", s.name, string(s.port))
+	return fmt.Sprintf("http://%s:%d", s.name, s.port)
 }
 
 func (r *Routes) addRoute(route Route) {

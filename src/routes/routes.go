@@ -16,7 +16,7 @@ func main() {
 		Route{"^/greet/(?P<name>.+)$", Greet},
 	}
 
-	app.addService("hellohttp-backend", 9001)
+	app.addService("hellohttp-backend", 80)
 
 	app.Listen()
 }
