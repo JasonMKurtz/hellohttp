@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -13,7 +12,7 @@ func main() {
 	app.routes = []Route{
 		Route{"/hello", HandleHello},
 		Route{"/bar", HandleBar},
-		Route{"^/greet/(?P<name>.+)$", Greet},
+		Route{"^/greet/(?P<name>[a-zA-Z]+)$", Greet},
 	}
 
 	app.addService("hellohttp-backend", 80)
@@ -26,17 +25,7 @@ func Greet(w http.ResponseWriter, r *http.Request, route string) {
 	fmt.Fprintf(w, "Hello %s!\n", reg.GetNamedGroups()["name"])
 
 	backend := app.services["hellohttp-backend"]
-
-	resp, err := http.Get(fmt.Sprintf("%s/api/foo", backend.getString()))
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		panic(err)
-	}
-
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Fprintf(w, "Backend response: %s\n", body)
+	fmt.Fprintf(w, "Backend says: \"%s\"", backend.request("api/foo"))
 }
 
 func Missing(w http.ResponseWriter, r *http.Request, route string) {

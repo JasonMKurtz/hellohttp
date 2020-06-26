@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 )
@@ -28,6 +29,19 @@ type Service struct {
 
 func (s *Service) getString() string {
 	return fmt.Sprintf("http://%s:%d", s.name, s.port)
+}
+
+func (s *Service) request(path string) string {
+	resp, err := http.Post(fmt.Sprintf("%s/%s", s.getString(), path))
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	return string(body)
 }
 
 func (r *Routes) addRoute(route Route) {

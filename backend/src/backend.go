@@ -15,5 +15,5 @@ func main() {
 }
 
 func HandleFoo(w http.ResponseWriter, r *http.Request, route string) {
-	fmt.Fprintf(w, "You've reached /foo on the backend.")
+	fmt.Fprintf(w, "You're at %s on the backend.", route)
 }

@@ -14,6 +14,13 @@ spec:
             labels:
                 app: hellohttp-backend
         spec:
+            volumes:
+                - name: vol1
+                  persistentVolumeClaim:
+                    claimName: task-pv-claim
             containers:
-            - image: jmliber/hello-backend:0.2
+            - image: jmliber/hellohttp-backend:0.4
               name: hellohttp-backend
+              volumeMounts:
+                - mountPath: "/mnt/vol/foo"
+                  name: vol1
