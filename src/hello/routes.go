@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	db "../lib/db"
 	jregex "../lib/jregex"
 	routetypes "../lib/routes"
 )
@@ -16,11 +17,25 @@ func main() {
 		routetypes.Route{Route: "/hello", Handler: HandleHello},
 		routetypes.Route{Route: "/bar", Handler: HandleBar},
 		routetypes.Route{Route: "^/greet/(?P<name>[a-zA-Z]+)$", Handler: Greet},
+		routetypes.Route{Route: "/read", Handler: Read},
 	}
 
 	app.AddService("hellohttp-backend", 80)
 
 	app.Listen()
+}
+
+func Read(w http.ResponseWriter, r *http.Request, route string) {
+	d := db.Database{
+		Host: "mysql-1593208582",
+		Port: "3306",
+		User: "root",
+		Db:   "",
+	}
+
+	res := d.Read()
+
+	fmt.Fprintf(w, "%v", res)
 }
 
 func Greet(w http.ResponseWriter, r *http.Request, route string) {

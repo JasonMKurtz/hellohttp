@@ -10,7 +10,7 @@ metadata:
     heritage: "Helm"
   annotations:
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
   - name: mysql
     port: 3306

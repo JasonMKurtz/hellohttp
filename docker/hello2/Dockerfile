@@ -3,6 +3,7 @@ WORKDIR /tmp/hello
 RUN mkdir -p src lib
 COPY src/hello/*.go src
 COPY src/lib lib
+RUN go get github.com/go-sql-driver/mysql
 RUN go build -o hello src/*.go
 
 FROM ubuntu:18.04
