@@ -15,5 +15,11 @@ spec:
                 app: hellohttp
         spec:
             containers:
-            - image: jmliber/hello2:1.12
+            - image: jmliber/hello2:1.13
               name: hellohttp
+              env:
+                - name: MYSQL_ROOT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                        name: mysql-1593208582
+                        key: mysql-root-password

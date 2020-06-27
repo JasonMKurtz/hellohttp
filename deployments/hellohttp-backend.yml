@@ -19,7 +19,7 @@ spec:
                   persistentVolumeClaim:
                     claimName: task-pv-claim
             containers:
-            - image: jmliber/hellohttp-backend:0.4
+            - image: jmliber/hellohttp-backend:0.5
               name: hellohttp-backend
               volumeMounts:
                 - mountPath: "/mnt/vol/foo"
