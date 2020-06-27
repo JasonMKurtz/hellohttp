@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type Database struct {
@@ -42,7 +44,7 @@ func (d *Database) Read() string {
 	var res string
 	err := db.QueryRow("SELECT 1").Scan(&res)
 	if err != nil {
-		panic(err.Error)
+		panic(err)
 	}
 
 	return res
