@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-1593208582-test
+  namespace: default
+  labels:
+    app: mysql-1593208582
+    chart: "mysql-1.6.4"
+    heritage: "Helm"
+    release: "mysql-1593208582"
+data:
+  run.sh: |-
