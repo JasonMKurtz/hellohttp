@@ -22,20 +22,37 @@ func main() {
 
 	app.AddService("hellohttp-backend", 80)
 
-	app.Listen()
-}
-
-func Read(w http.ResponseWriter, r *http.Request, route string) {
-	d := db.Database{
+	app.AddDatabase(db.Database{
 		Host: "mysql-1593208582",
 		Port: "3306",
 		User: "root",
-		Db:   "",
+		Db:   "hello",
+	})
+
+	app.Listen()
+}
+
+type Name struct {
+	name string
+	foo  string
+}
+
+func Read(w http.ResponseWriter, r *http.Request, route string) {
+	q := app.Database.Query("SELECT name FROM hello")
+	var names []Name
+	for q.Next() {
+		var n Name
+		err := q.Scan(&n.name)
+		if err != nil {
+			panic(err)
+		}
+
+		names = append(names, n)
 	}
 
-	res := d.Read()
-
-	fmt.Fprintf(w, "%v", res)
+	for _, v := range names {
+		fmt.Fprintf(w, "Name: %s\n", v.name)
+	}
 }
 
 func Greet(w http.ResponseWriter, r *http.Request, route string) {

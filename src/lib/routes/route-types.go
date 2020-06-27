@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+
+	db "../db"
 )
 
 type RouteHandler func(w http.ResponseWriter, r *http.Request, route string)
@@ -20,6 +22,7 @@ type Routes struct {
 	Primary  RouteHandler
 	Missing  RouteHandler
 	Services map[string]Service
+	Database db.Database
 }
 
 type Service struct {
@@ -62,6 +65,10 @@ func (r *Routes) AddService(name string, port int) {
 	}
 
 	r.Services[name] = Service{name, port}
+}
+
+func (r *Routes) AddDatabase(d db.Database) {
+	r.Database = d
 }
 
 func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {

@@ -38,14 +38,16 @@ func (d *Database) open() *sql.DB {
 	return db
 }
 
-func (d *Database) Read() string {
+func (d *Database) Query(q string) *sql.Rows {
 	db := d.open()
 
-	var res string
-	err := db.QueryRow("SELECT 1").Scan(&res)
+	rows, err := db.Query(q)
+
 	if err != nil {
 		panic(err)
 	}
 
-	return res
+	defer db.Close()
+
+	return rows
 }
