@@ -15,10 +15,9 @@ func main() {
 	app = routetypes.Routes{Port: "8080", Primary: HandleHello, Missing: Missing}
 	app.Routes = []routetypes.Route{
 		routetypes.Route{Route: "/hello", Handler: HandleHello},
-		routetypes.Route{Route: "/bar", Handler: HandleBar},
 		routetypes.Route{Route: "^/greet/(?P<name>[a-zA-Z]+)$", Handler: Greet, DenyPost: true},
 		routetypes.Route{Route: "/read", Handler: Read},
-		routetypes.Route{Route: "/post", Handler: TestPost, DenyGet: true},
+		routetypes.Route{Route: "/newname", Handler: AddName, DenyGet: true},
 	}
 
 	app.AddService("hellohttp-backend", 80)
@@ -33,17 +32,13 @@ func main() {
 	app.Listen()
 }
 
-func TestPost(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
-	fmt.Fprintf(w, "POST!")
-}
-
 type Name struct {
 	name string
 	foo  string
 }
 
 func Read(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
-	q := app.Database.Query("SELECT name FROM hello")
+	q := app.Database.Query("SELECT name FROM names")
 	var names []Name
 	for q.Next() {
 		var n Name
@@ -55,9 +50,27 @@ func Read(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 		names = append(names, n)
 	}
 
+	fmt.Fprintf(w, "So far, we've got...\n")
 	for _, v := range names {
 		fmt.Fprintf(w, "Name: %s\n", v.name)
 	}
+}
+
+func AddName(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
+	db := app.Database.Open()
+	q, err := db.Prepare("INSERT INTO names (`name`) values(?)")
+	if err != nil {
+		panic(err)
+	}
+
+	name := r.URL.Query().Get("name")
+	if name == "" {
+		panic(err)
+	}
+
+	q.Exec(name)
+
+	fmt.Fprintf(w, "%s added!\n", name)
 }
 
 func Greet(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
@@ -69,13 +82,9 @@ func Greet(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 }
 
 func Missing(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
-	fmt.Fprintf(w, r.URL.Path+" was requested but not found.")
+	fmt.Fprintf(w, "%s was requested but not found.", r.URL.Path)
 }
 
 func HandleHello(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	fmt.Fprintf(w, "Hello, this might be /hello!")
-}
-
-func HandleBar(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
-	fmt.Fprintf(w, "Hello, this is /bar!")
 }

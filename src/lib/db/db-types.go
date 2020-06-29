@@ -19,7 +19,7 @@ func (d *Database) getPass() string {
 	return os.Getenv("MYSQL_ROOT_PASSWORD")
 }
 
-func (d *Database) open() *sql.DB {
+func (d *Database) Open() *sql.DB {
 	pass := d.getPass()
 	conn := fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s",
@@ -39,7 +39,7 @@ func (d *Database) open() *sql.DB {
 }
 
 func (d *Database) Query(q string) *sql.Rows {
-	db := d.open()
+	db := d.Open()
 
 	rows, err := db.Query(q)
 
