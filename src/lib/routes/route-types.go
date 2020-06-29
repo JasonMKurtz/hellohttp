@@ -9,11 +9,12 @@ import (
 	db "../db"
 )
 
-type RouteHandler func(w http.ResponseWriter, r *http.Request, route string)
+type RouteHandler func(w http.ResponseWriter, r *http.Request, route Route)
 
 type Route struct {
-	Route   string
-	Handler RouteHandler
+	Route    string
+	Handler  RouteHandler
+	OnlyPost bool
 }
 
 type Routes struct {
@@ -47,10 +48,6 @@ func (s *Service) Request(path string) string {
 	return string(body)
 }
 
-func (r *Routes) AddRoute(route Route) {
-	r.Routes = append(r.Routes, route)
-}
-
 func (r *Routes) AddDefaultRoute(h RouteHandler) {
 	r.Primary = h
 }
@@ -71,25 +68,33 @@ func (r *Routes) AddDatabase(d db.Database) {
 	r.Database = d
 }
 
+func (r *Routes) missing(w http.ResponseWriter, req *http.Request) {
+	if r.Missing == nil {
+		http.NotFound(w, req)
+		return
+	}
+
+	r.Missing(w, req, Route{})
+}
+
 func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.Routes {
 		reg, _ := regexp.Compile(route.Route)
 		path := req.URL.Path
 		if path == "/" && r.Primary != nil {
-			r.Primary(w, req, "/")
+			r.Primary(w, req, route)
 			return
 		} else if reg.MatchString(path) {
-			route.Handler(w, req, route.Route)
+			if route.OnlyPost && req.Method != "POST" {
+				r.missing(w, req)
+				return
+			}
+			route.Handler(w, req, route)
 			return
 		}
 	}
 
-	if r.Missing != nil {
-		r.Missing(w, req, "")
-		return
-	}
-
-	http.NotFound(w, req)
+	r.missing(w, req)
 	return
 }
 

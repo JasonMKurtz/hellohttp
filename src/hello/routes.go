@@ -18,6 +18,7 @@ func main() {
 		routetypes.Route{Route: "/bar", Handler: HandleBar},
 		routetypes.Route{Route: "^/greet/(?P<name>[a-zA-Z]+)$", Handler: Greet},
 		routetypes.Route{Route: "/read", Handler: Read},
+		routetypes.Route{Route: "/post", Handler: TestPost, OnlyPost: true},
 	}
 
 	app.AddService("hellohttp-backend", 80)
@@ -32,12 +33,16 @@ func main() {
 	app.Listen()
 }
 
+func TestPost(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
+	fmt.Fprintf(w, "POST!")
+}
+
 type Name struct {
 	name string
 	foo  string
 }
 
-func Read(w http.ResponseWriter, r *http.Request, route string) {
+func Read(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	q := app.Database.Query("SELECT name FROM hello")
 	var names []Name
 	for q.Next() {
@@ -55,22 +60,22 @@ func Read(w http.ResponseWriter, r *http.Request, route string) {
 	}
 }
 
-func Greet(w http.ResponseWriter, r *http.Request, route string) {
-	reg := &jregex.JRegex{Exp: route, Haystack: r.URL.Path}
+func Greet(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
+	reg := &jregex.JRegex{Exp: route.Route, Haystack: r.URL.Path}
 	fmt.Fprintf(w, "Hello %s!\n", reg.GetNamedGroups()["name"])
 
 	backend := app.Services["hellohttp-backend"]
 	fmt.Fprintf(w, "Backend says: \"%s\"", backend.Request("api/foo"))
 }
 
-func Missing(w http.ResponseWriter, r *http.Request, route string) {
+func Missing(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	fmt.Fprintf(w, r.URL.Path+" was requested but not found.")
 }
 
-func HandleHello(w http.ResponseWriter, r *http.Request, route string) {
+func HandleHello(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	fmt.Fprintf(w, "Hello, this might be /hello!")
 }
 
-func HandleBar(w http.ResponseWriter, r *http.Request, route string) {
+func HandleBar(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	fmt.Fprintf(w, "Hello, this is /bar!")
 }
