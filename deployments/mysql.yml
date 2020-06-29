@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql-1593208582
+  name: mysql
   namespace: default
   labels:
-    app: mysql-1593208582
+    app: mysql
     chart: "mysql-1.6.4"
     release: "mysql-1593208582"
     heritage: "Helm"
@@ -14,12 +14,12 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: mysql-1593208582
+      app: mysql
       release: mysql-1593208582
   template:
     metadata:
       labels:
-        app: mysql-1593208582
+        app: mysql
         release: mysql-1593208582
     spec:
       serviceAccountName: default
@@ -40,7 +40,7 @@ spec:
       #   command: ['do', 'something']
       
       containers:
-      - name: mysql-1593208582
+      - name: mysql
         image: "mysql:5.7.30"
         imagePullPolicy: "IfNotPresent"
         resources:
@@ -98,7 +98,7 @@ spec:
       volumes:
       - name: data
         persistentVolumeClaim:
-          claimName: mysql-1593208582
+          claimName: mysql
       # - name: extras
       #   emptyDir: {}
 

@@ -14,7 +14,8 @@ type RouteHandler func(w http.ResponseWriter, r *http.Request, route Route)
 type Route struct {
 	Route    string
 	Handler  RouteHandler
-	OnlyPost bool
+	DenyGet  bool
+	DenyPost bool
 }
 
 type Routes struct {
@@ -77,6 +78,21 @@ func (r *Routes) missing(w http.ResponseWriter, req *http.Request) {
 	r.Missing(w, req, Route{})
 }
 
+func (r *Routes) allowMethod(w http.ResponseWriter, req *http.Request, route Route) bool {
+	noget := route.DenyGet
+	nopost := route.DenyPost
+
+	if noget && req.Method == "GET" {
+		return false
+	}
+
+	if nopost && req.Method == "POST" {
+		return false
+	}
+
+	return true
+}
+
 func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.Routes {
 		reg, _ := regexp.Compile(route.Route)
@@ -85,10 +101,11 @@ func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			r.Primary(w, req, route)
 			return
 		} else if reg.MatchString(path) {
-			if route.OnlyPost && req.Method != "POST" {
+			if !r.allowMethod(w, req, route) {
 				r.missing(w, req)
 				return
 			}
+
 			route.Handler(w, req, route)
 			return
 		}

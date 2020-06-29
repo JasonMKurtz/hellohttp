@@ -16,15 +16,15 @@ func main() {
 	app.Routes = []routetypes.Route{
 		routetypes.Route{Route: "/hello", Handler: HandleHello},
 		routetypes.Route{Route: "/bar", Handler: HandleBar},
-		routetypes.Route{Route: "^/greet/(?P<name>[a-zA-Z]+)$", Handler: Greet},
+		routetypes.Route{Route: "^/greet/(?P<name>[a-zA-Z]+)$", Handler: Greet, DenyPost: true},
 		routetypes.Route{Route: "/read", Handler: Read},
-		routetypes.Route{Route: "/post", Handler: TestPost, OnlyPost: true},
+		routetypes.Route{Route: "/post", Handler: TestPost, DenyGet: true},
 	}
 
 	app.AddService("hellohttp-backend", 80)
 
 	app.AddDatabase(db.Database{
-		Host: "mysql-1593208582",
+		Host: "mysql",
 		Port: "3306",
 		User: "root",
 		Db:   "hello",
