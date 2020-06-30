@@ -1,8 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
 
 	db "../lib/db"
 	jregex "../lib/jregex"
@@ -22,12 +24,19 @@ func main() {
 
 	app.AddService("hellohttp-backend", 80)
 
+	sql_host := os.Getenv("MYSQL_HOST")
+	if sql_host == "" {
+		sql_host = "mysql"
+	}
+
 	app.AddDatabase(db.Database{
-		Host: "mysql",
+		Host: sql_host,
 		Port: "3306",
 		User: "root",
 		Db:   "hello",
 	})
+
+	fmt.Printf("Using database %s\n", sql_host)
 
 	app.Listen()
 }
@@ -35,6 +44,22 @@ func main() {
 type Name struct {
 	name string
 	foo  string
+}
+
+func findGreeting(name string) string {
+	db := app.Database.Open()
+
+	var greeting sql.NullString
+	err := db.QueryRow("SELECT greeting FROM names WHERE name=?", name).Scan(&greeting)
+	if err != nil && err != sql.ErrNoRows {
+		panic(err)
+	}
+
+	if greeting.Valid && greeting.String != "" {
+		return greeting.String
+	} else {
+		return "Hey"
+	}
 }
 
 func Read(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
@@ -58,24 +83,26 @@ func Read(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 
 func AddName(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	db := app.Database.Open()
-	q, err := db.Prepare("INSERT INTO names (`name`) values(?)")
+	q, err := db.Prepare("INSERT INTO names (`name`, `greeting`) values(?, ?)")
 	if err != nil {
 		panic(err)
 	}
 
 	name := r.URL.Query().Get("name")
+	greeting := r.URL.Query().Get("greeting")
 	if name == "" {
 		panic(err)
 	}
 
-	q.Exec(name)
+	q.Exec(name, greeting)
 
 	fmt.Fprintf(w, "%s added!\n", name)
 }
 
 func Greet(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	reg := &jregex.JRegex{Exp: route.Route, Haystack: r.URL.Path}
-	fmt.Fprintf(w, "Hello %s!\n", reg.GetNamedGroups()["name"])
+	name := reg.GetNamedGroups()["name"]
+	fmt.Fprintf(w, "%s %s!\n", findGreeting(name), name)
 
 	backend := app.Services["hellohttp-backend"]
 	fmt.Fprintf(w, "Backend says: \"%s\"", backend.Request("api/foo"))
