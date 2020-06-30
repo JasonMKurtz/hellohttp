@@ -15,7 +15,7 @@ spec:
                 app: hellohttp
         spec:
             containers:
-            - image: jmliber/hello3:0.1
+            - image: jmliber/hello3:0.3
               name: hellohttp
               env:
                 - name: MYSQL_ROOT_PASSWORD

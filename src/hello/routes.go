@@ -26,7 +26,7 @@ func main() {
 	app = routetypes.Routes{Port: "8080", Primary: HandleHello, Missing: Missing}
 	app.Routes = []routetypes.Route{
 		routetypes.Route{Route: "/hello", Handler: HandleHello},
-		routetypes.Route{Route: "^/greet/(?P<name>[a-zA-Z]+)$", Handler: Greet, DenyPost: true},
+		routetypes.Route{Route: "^/greet/?(?P<name>[a-zA-Z]+)?/?$", Handler: Greet, DenyPost: true},
 		routetypes.Route{Route: "/read", Handler: Read},
 		routetypes.Route{Route: "/newname", Handler: AddName, DenyGet: true},
 	}
@@ -106,7 +106,11 @@ func AddName(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 func Greet(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	reg := &jregex.JRegex{Exp: route.Route, Haystack: r.URL.Path}
 	name := reg.GetNamedGroups()["name"]
-	fmt.Fprintf(w, "%s %s!\n", findGreeting(name), name)
+	if name == "" {
+		fmt.Fprintf(w, "Hey guest!\n")
+	} else {
+		fmt.Fprintf(w, "%s %s!\n", findGreeting(name), name)
+	}
 
 	backend := app.Services["hellohttp-backend"]
 	fmt.Fprintf(w, "Backend says: \"%s\"", backend.Request("api/foo"))
