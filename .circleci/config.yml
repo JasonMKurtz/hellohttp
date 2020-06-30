@@ -25,6 +25,7 @@ jobs:
           image: gcr.io/hellohttp-a/hello2
           tag: 1.0.<< pipeline.number >>
           path: docker/hello2
+          docker-context: /home/circleci/project
       - gcr/push-image:
           image: hello2
           tag: 1.0.<< pipeline.number >> 
