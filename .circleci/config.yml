@@ -17,9 +17,10 @@ jobs:
       - gcr/gcr-auth 
       - checkout
       - setup_remote_docker
-      - run: |
-        ls -al 
-        pwd
+      - run: 
+          command: |
+            ls -al 
+            pwd
       - docker/build:
           image: gcr.io/hellohttp-a/hello2
           tag: 1.0.<< pipeline.number >>
