@@ -13,6 +13,15 @@ import (
 
 var app routetypes.Routes
 
+func getMysqlHost() string {
+	host := os.Getenv("MYSQL_HOST")
+	if host != "" {
+		return host
+	}
+
+	return "mysql"
+}
+
 func main() {
 	app = routetypes.Routes{Port: "8080", Primary: HandleHello, Missing: Missing}
 	app.Routes = []routetypes.Route{
@@ -24,19 +33,14 @@ func main() {
 
 	app.AddService("hellohttp-backend", 80)
 
-	sql_host := os.Getenv("MYSQL_HOST")
-	if sql_host == "" {
-		sql_host = "mysql"
-	}
-
 	app.AddDatabase(db.Database{
-		Host: sql_host,
+		Host: getMysqlHost(),
 		Port: "3306",
 		User: "root",
 		Db:   "hello",
 	})
 
-	fmt.Printf("Using database %s\n", sql_host)
+	fmt.Printf("Using database %s\n", getMysqlHost())
 
 	app.Listen()
 }
