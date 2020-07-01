@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
+	config "../config"
 	db "../db"
 )
 
@@ -101,7 +102,7 @@ func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			r.Primary(w, req, route)
 			return
 		} else if reg.MatchString(path) {
-			if !r.allowMethod(w, req, route) {
+			if !r.allowMethod(w, req, route) || config.IsRouteDenied(path) {
 				r.missing(w, req)
 				return
 			}

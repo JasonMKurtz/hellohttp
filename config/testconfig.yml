@@ -1,11 +1,7 @@
 apiVersion: v1
 data:
-  foo: bar2
+  nosuch: bar2 asdf asdfasdf
 kind: ConfigMap
 metadata:
-  creationTimestamp: "2020-07-01T15:15:59Z"
   name: testconfig
   namespace: default
-  resourceVersion: "785781"
-  selfLink: /api/v1/namespaces/default/configmaps/testconfig
-  uid: 2e523753-eef6-4124-92cc-614095e923e9

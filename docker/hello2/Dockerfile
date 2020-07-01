@@ -5,7 +5,8 @@ RUN go get github.com/go-sql-driver/mysql
 RUN CGO_ENABLED=0 go build -o /hello src/*.go
 RUN chmod +x /hello
 
-FROM scratch
+# FROM scratch
+FROM golang:alpine
 COPY --from=builder /hello /
 EXPOSE 8080
 CMD ["/hello"]
