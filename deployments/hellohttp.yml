@@ -14,9 +14,16 @@ spec:
             labels:
                 app: hellohttp
         spec:
+            volumes:
+                - name: config
+                  configMap:
+                    name: testconfig
             containers:
-            - image: jmliber/hello3:0.3
+            - image: jmliber/hello3:0.6
               name: hellohttp
+              volumeMounts:
+                - name: config
+                  mountPath: /config
               env:
                 - name: MYSQL_ROOT_PASSWORD
                   valueFrom:
@@ -25,3 +32,4 @@ spec:
                         key: mysql-root-password
                 - name: MYSQL_HOST
                   value: "mysql"
+              

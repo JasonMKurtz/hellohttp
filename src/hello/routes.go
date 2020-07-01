@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	config "../lib/config"
 	db "../lib/db"
 	jregex "../lib/jregex"
 	routetypes "../lib/routes"
@@ -29,6 +30,7 @@ func main() {
 		routetypes.Route{Route: "^/greet/?(?P<name>[a-zA-Z]+)?/?$", Handler: Greet, DenyPost: true},
 		routetypes.Route{Route: "/read", Handler: Read},
 		routetypes.Route{Route: "/newname", Handler: AddName, DenyGet: true},
+		routetypes.Route{Route: "/config", Handler: ReadConfig},
 	}
 
 	app.AddService("hellohttp-backend", 80)
@@ -48,6 +50,16 @@ func main() {
 type Name struct {
 	name string
 	foo  string
+}
+
+func ReadConfig(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
+	config := config.Get("nosuch")
+	data := config.Content
+	if !config.Valid {
+		data = "invalid"
+	}
+
+	fmt.Fprintf(w, "Data: %s.\n", data)
 }
 
 func findGreeting(name string) string {
