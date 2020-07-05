@@ -1,0 +1,22 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+    name: helloload
+    labels:
+        app: helloload
+spec:
+    selector:
+        matchLabels:
+            app: helloload
+    template: 
+        metadata:
+            labels:
+                app: helloload
+        spec:
+          containers:
+          - image: jmliber/helloload:0.7
+            name: helloload
+            resources:
+              requests:
+                cpu: "250m"
+              
