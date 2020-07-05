@@ -23,6 +23,15 @@ func getMysqlHost() string {
 	return "mysql"
 }
 
+func getConfigPath() string {
+	path := os.Getenv("CONFIG_PATH")
+	if path != "" {
+		return path
+	}
+
+	return "/config"
+}
+
 func main() {
 	app = routetypes.Routes{Port: "8080", Primary: HandleHello, Missing: Missing}
 	app.Routes = []routetypes.Route{
@@ -42,7 +51,9 @@ func main() {
 		Db:   "hello",
 	})
 
-	fmt.Printf("Using database %s\n", getMysqlHost())
+	app.SetConfigPath(getConfigPath())
+
+	fmt.Printf("Using database %s\nConfig Path: %s\n", getMysqlHost(), getConfigPath())
 
 	app.Listen()
 }

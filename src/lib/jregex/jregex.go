@@ -8,6 +8,12 @@ type JRegex struct {
 	Exp, Haystack string
 }
 
+func IsMatch(exp, search string) bool {
+	r := &JRegex{Exp: exp, Haystack: search}
+	_, match := r.compAndMatch()
+	return len(match) >= 1
+}
+
 func (e *JRegex) compAndMatch() (*regexp.Regexp, []string) {
 	var r = regexp.MustCompile(e.Exp)
 	match := r.FindStringSubmatch(e.Haystack)

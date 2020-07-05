@@ -5,9 +5,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"strings"
 
 	config "../config"
 	db "../db"
+	jregex "../jregex"
+	utils "../utils"
 )
 
 type RouteHandler func(w http.ResponseWriter, r *http.Request, route Route)
@@ -20,12 +23,13 @@ type Route struct {
 }
 
 type Routes struct {
-	Routes   []Route
-	Port     string
-	Primary  RouteHandler
-	Missing  RouteHandler
-	Services map[string]Service
-	Database db.Database
+	Routes     []Route
+	Port       string
+	Primary    RouteHandler
+	Missing    RouteHandler
+	Services   map[string]Service
+	Database   db.Database
+	ConfigPath string
 }
 
 type Service struct {
@@ -48,6 +52,10 @@ func (s *Service) Request(path string) string {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	return string(body)
+}
+
+func (r *Routes) SetConfigPath(p string) {
+	r.ConfigPath = p
 }
 
 func (r *Routes) AddDefaultRoute(h RouteHandler) {
@@ -94,6 +102,20 @@ func (r *Routes) allowMethod(w http.ResponseWriter, req *http.Request, route Rou
 	return true
 }
 
+func (r *Route) IsRouteDenied(route, configpath string) bool {
+	config := config.Get(fmt.Sprintf("%s/denyroutes", configpath))
+	if !config.Valid {
+		return false
+	}
+
+	routes := strings.Split(config.Content, " ")
+	if utils.InList(routes, route) || jregex.IsMatch(route, r.Route) {
+		return true
+	}
+
+	return false
+}
+
 func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.Routes {
 		reg, _ := regexp.Compile(route.Route)
@@ -102,7 +124,7 @@ func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			r.Primary(w, req, route)
 			return
 		} else if reg.MatchString(path) {
-			if !r.allowMethod(w, req, route) || config.IsRouteDenied(path) {
+			if !r.allowMethod(w, req, route) || route.IsRouteDenied(path, r.ConfigPath) {
 				r.missing(w, req)
 				return
 			}

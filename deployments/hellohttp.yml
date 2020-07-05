@@ -19,7 +19,7 @@ spec:
                   configMap:
                     name: testconfig
             containers:
-            - image: jmliber/hello3:0.0.9
+            - image: jmliber/hello3:0.0.13
               name: hellohttp
               volumeMounts:
                 - name: config
