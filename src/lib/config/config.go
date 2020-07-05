@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
-
-	utils "../utils"
 )
 
 type Config struct {
@@ -15,16 +12,17 @@ type Config struct {
 	Content  string
 }
 
-func Get(file string) *Config {
-	c := &Config{Filename: file, Content: "", Valid: false}
-	filename := fmt.Sprintf("/config/%s", file)
+func Get(filename string) *Config {
+	c := &Config{Filename: filename, Content: "", Valid: false}
 	f, err := os.Stat(filename)
 	if err != nil || f.IsDir() {
+		fmt.Printf("Config: %s\nError? %v\nDir? %v", filename, err, f.IsDir())
 		return c
 	}
 
 	value, err := ioutil.ReadFile(filename)
 	if err != nil {
+		fmt.Printf("Can't read %s", filename)
 		return c
 	}
 
@@ -32,22 +30,4 @@ func Get(file string) *Config {
 	c.Valid = true
 
 	return c
-}
-
-func IsRouteDenied(route string) bool {
-	config := Get("denyroutes")
-	fmt.Printf("Config: %v\n", config.Content)
-	if !config.Valid {
-		return false
-	}
-
-	routes := strings.Split(config.Content, " ")
-	fmt.Printf("Checking against %s\n", route)
-	if utils.InList(routes, route) {
-		fmt.Printf("Route %s in deny list.\n", route)
-		return true
-	}
-
-	fmt.Printf("Route %s not in deny list.\n", route)
-	return false
 }
