@@ -13,3 +13,7 @@ spec:
           backend:
             serviceName: hellohttp-backend
             servicePort: 80
+        - path: /load
+          backend:
+            serviceName: helloload
+            servicePort: 80

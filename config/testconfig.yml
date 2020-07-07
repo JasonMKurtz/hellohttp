@@ -1,7 +1,7 @@
 apiVersion: v1
 data:
   nosuch: bar2 asdf asdfasdf
-  denyroutes: /hello /greet
+  denyroutes: /hello
 kind: ConfigMap
 metadata:
   name: testconfig

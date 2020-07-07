@@ -17,7 +17,7 @@ func main() {
 
 func Load(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	var sum int
-	for i := 0; i <= 1000000000000000; i++ {
+	for i := 0; i <= 1000; i++ {
 		sum = sum + (i % 2) - 3
 	}
 	fmt.Fprintf(w, "Okay!")
