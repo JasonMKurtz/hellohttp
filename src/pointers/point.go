@@ -94,14 +94,14 @@ func (f *Feed) seek(direction int) {
 	}
 }
 
-func (f *Feed) Prev() Post {
+func (f *Feed) Prev() *Post {
 	f.seek(0)
-	return *f.curPost
+	return f.curPost
 }
 
-func (f *Feed) Next() Post {
+func (f *Feed) Next() *Post {
 	f.seek(1)
-	return *f.curPost
+	return f.curPost
 }
 
 func (f *Feed) Top() *Post {
@@ -137,6 +137,8 @@ func main() {
 	f := CreateFeed()
 	f.AddPost("test post", "lorem")
 	f.AddPost("test post 2", "lorem")
+	fmt.Printf(ReadPost(f.Current()))
+	f.Prev()
 	fmt.Printf(ReadPost(f.Current()))
 	f.AddPost("test post 3", "lorem")
 	f.AddPost("test post 4", "lorem")
