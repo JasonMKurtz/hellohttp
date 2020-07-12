@@ -19,61 +19,63 @@ func CreateFeed() *Feed {
 	return &Feed{}
 }
 
+func (f *Feed) Size() int {
+	return f.length
+}
+
 func (f *Feed) AddPost(title, text string) {
-	p := &Post{
+	p := Post{
 		title: title,
 		text:  text,
 	}
 
+	f.length++
+
 	if f.curPost == nil {
-		f.topPost = p
-		f.curPost = p
-		fmt.Printf("Added \"%s\" as the first post.\n", p.title)
+		f.topPost = &p
+		f.curPost = &p
 		return
 	}
 
-	cur := f.curPost
-	for cur.next != nil {
-		cur = cur.next
-	}
-
-	fmt.Printf("We're adding \"%s\". The previous one is \"%s\"\n",
-		p.title, cur.title)
-
-	fmt.Printf("Cur: %s\n", cur.title)
-
-	p.prev = cur
-	cur.next = p
-	f.curPost = p
-	return
+	tail := f.Tail()
+	p.prev = tail
+	tail.next = &p
+	f.curPost = &p
 }
 
 func (f *Feed) DelPost(title string) {
+	for _, p := range f.List() {
+		if p.title == title {
+			p.prev.next = p.next
+			f.curPost = p
+		}
+	}
+	f.length--
 }
 
-func (f *Feed) List() []Post {
+func (f *Feed) List() []*Post {
 	if f.curPost == nil {
 		return nil
 	}
-	var posts []Post
+	var posts []*Post
 
-	cur := f.curPost
-	posts = append(posts, *cur)
+	cur := f.topPost
+	posts = append(posts, cur)
 	for cur.next != nil {
-		posts = append(posts, *cur.next)
+		posts = append(posts, cur.next)
 		cur = cur.next
 	}
 
 	return posts
 }
 
-func (f *Feed) Tail() Post {
+func (f *Feed) Tail() *Post {
 	last := f.curPost
 	for last.next != nil {
 		last = last.next
 	}
 
-	return *last
+	return last
 }
 
 func (f *Feed) seek(direction int) {
@@ -82,13 +84,13 @@ func (f *Feed) seek(direction int) {
 		if prev == nil {
 			return
 		}
-		*f.curPost = *prev
+		f.curPost = prev
 	} else if direction == 1 {
 		next := f.curPost.next
 		if next == nil {
 			return
 		}
-		*f.curPost = *next
+		f.curPost = next
 	}
 }
 
@@ -136,8 +138,9 @@ func main() {
 	f.AddPost("test post", "lorem")
 	f.AddPost("test post 2", "lorem")
 	fmt.Printf(ReadPost(f.Current()))
-	f.Prev()
-	fmt.Printf(ReadPost(f.Current()))
-	f.Next()
-	fmt.Printf(ReadPost(f.Current()))
+	f.AddPost("test post 3", "lorem")
+	f.AddPost("test post 4", "lorem")
+	for _, p := range f.List() {
+		fmt.Printf(ReadPost(p))
+	}
 }

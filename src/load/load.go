@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	app := routetypes.Routes{Port: "80", Primary: Load}
+	app := routetypes.Routes{Port: "8090", Primary: Load}
 	app.Routes = []routetypes.Route{
 		routetypes.Route{Route: "/load", Handler: Load},
 	}
@@ -17,8 +17,8 @@ func main() {
 
 func Load(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	var sum int
-	for i := 0; i <= 1000; i++ {
-		sum = sum + (i % 2) - 3
+	for i := 0; i <= 100; i++ {
+		sum += i % 2
 	}
 	fmt.Fprintf(w, "Okay!")
 }
