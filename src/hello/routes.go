@@ -40,6 +40,7 @@ func main() {
 		routetypes.Route{Route: "/read", Handler: Read},
 		routetypes.Route{Route: "/newname", Handler: AddName, DenyGet: true},
 		routetypes.Route{Route: "/config", Handler: ReadConfig},
+		routetypes.Route{Route: "/whoami", Handler: WhoAmI},
 	}
 
 	app.AddService("hellohttp-backend", 80)
@@ -56,6 +57,15 @@ func main() {
 	fmt.Printf("Using database %s\nConfig Path: %s\n", getMysqlHost(), getConfigPath())
 
 	app.Listen()
+}
+
+func WhoAmI(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
+	host := os.Getenv("HOSTNAME")
+	w.Header().Set("Content-type", "application/json")
+	ret := map[string]string{
+		"Host": host,
+	}
+	fmt.Fprintf(w, "%v", ret)
 }
 
 type Name struct {
