@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -65,7 +66,13 @@ func WhoAmI(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	ret := map[string]string{
 		"Host": host,
 	}
-	fmt.Fprintf(w, "%v", ret)
+	js, err := json.Marshal(ret)
+	if err != nil {
+		fmt.Fprintf(w, "Error! %s", err)
+		return
+	}
+
+	w.Write(js)
 }
 
 type Name struct {
