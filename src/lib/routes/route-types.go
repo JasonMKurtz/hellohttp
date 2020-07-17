@@ -124,10 +124,12 @@ func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			r.Primary(w, req, route)
 			return
 		} else if reg.MatchString(path) {
-			if !r.allowMethod(w, req, route) || route.IsRouteDenied(path, r.ConfigPath) {
-				r.missing(w, req)
-				return
-			}
+			/*
+				if !r.allowMethod(w, req, route) || route.IsRouteDenied(path, r.ConfigPath) {
+					r.missing(w, req)
+					return
+				}
+			*/
 
 			route.Handler(w, req, route)
 			return
