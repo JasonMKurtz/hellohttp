@@ -157,6 +157,7 @@ func Greet(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 }
 
 func Missing(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
+	w.WriteHeader(404)
 	fmt.Fprintf(w, "%s was requested but not found.", r.URL.Path)
 }
 
