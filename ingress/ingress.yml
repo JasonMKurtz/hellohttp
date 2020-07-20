@@ -2,10 +2,9 @@ apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: hellohttp-in
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
-    backend:
-        serviceName: hellohttp
-        servicePort: 8080
     rules:
     - http:
         paths:
@@ -17,3 +16,10 @@ spec:
           backend:
             serviceName: helloload
             servicePort: 80
+        - path: /wedding
+          backend:
+            serviceName: wedding
+            servicePort: 80
+    backend:
+        serviceName: hellohttp
+        servicePort: 8080
