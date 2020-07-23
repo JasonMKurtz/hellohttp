@@ -40,6 +40,10 @@ func (f *Feed) Size() int {
 	return f.length
 }
 
+func (f *Feed) CanDelete() bool {
+	return f.Size() <= 0
+}
+
 func (f *Feed) AddPost(title, text string) {
 	p := Post{
 		title: title,
