@@ -9,7 +9,7 @@ on:
 jobs:
 
   build:
-    runs-on: golang:rc
+    runs-on: golang:latest
     steps:
     - uses: actions/checkout@v2
 
