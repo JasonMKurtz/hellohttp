@@ -7,9 +7,7 @@ gazelle(name = "gazelle")
 go_library(
     name = "db",
     srcs = ["db-types.go"],
-    importpath = "github.com/jasonmkurtz/hellohttp",
+    importpath = "github.com/jasonmkurtz/hellohttp/src/lib/db",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_go_sql_driver_mysql//:go_default_library"],
-    # deps = ["@hellohttp//:go_default_library"],
-    # deps = ["@com_github_go_sql_driver_mysql//:go_default_library"],
+    deps = ["@mysql-driver//:mysql"],
 )

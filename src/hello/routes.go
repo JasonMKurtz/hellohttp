@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 
-	config "../lib/config"
-	db "../lib/db"
-	jregex "../lib/jregex"
-	routetypes "../lib/routes"
+	config "github.com/jasonmkurtz/hellohttp/src/lib/config"
+	db "github.com/jasonmkurtz/hellohttp/src/lib/db"
+	jregex "github.com/jasonmkurtz/hellohttp/src/lib/jregex"
+	routetypes "github.com/jasonmkurtz/hellohttp/src/lib/routes"
 )
 
 var app routetypes.Routes

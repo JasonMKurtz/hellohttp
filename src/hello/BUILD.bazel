@@ -4,19 +4,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 # gazelle:prefix github.com/jasonmkurtz/hellohttp
 gazelle(name = "gazelle")
 
-go_library(
-    name = "hello_lib",
-    srcs = ["routes.go"],
-    importpath = "github.com/jasonmkurtz/hellohttp",
-    visibility = ["//visibility:private"],
-    deps = [
-        "//src/lib/config",
-        "//src/lib/db",
-        "//src/lib/jregex",
-        "//src/lib/routes",
-    ],
-)
-
 go_binary(
     name = "hello",
     embed = [":hellohttp_lib"],
@@ -26,12 +13,12 @@ go_binary(
 go_library(
     name = "hellohttp_lib",
     srcs = ["routes.go"],
-    importpath = "github.com/jasonmkurtz/hellohttp",
+    importpath = "github.com/jasonmkurtz/hellohttp/src/hello",
     visibility = ["//visibility:private"],
     deps = [
         "//src/lib/config",
+        "//src/lib/db",
         "//src/lib/jregex",
-        "//src/lib/routes",
-        "@com_github_jasonmkurtz_hellohttp//src/lib/db:go_default_library",
+        "//src/lib/routes:routetypes",
     ],
 )

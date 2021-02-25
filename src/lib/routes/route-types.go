@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"strings"
 
-	config "../config"
-	db "../db"
-	jregex "../jregex"
-	utils "../utils"
+	config "github.com/jasonmkurtz/hellohttp/src/lib/config"
+	db "github.com/jasonmkurtz/hellohttp/src/lib/db"
+	jregex "github.com/jasonmkurtz/hellohttp/src/lib/jregex"
+	utils "github.com/jasonmkurtz/hellohttp/src/lib/utils"
 )
 
 type RouteHandler func(w http.ResponseWriter, r *http.Request, route Route)
