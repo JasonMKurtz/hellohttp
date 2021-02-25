@@ -25,3 +25,21 @@ go_register_toolchains(version = "1.16")
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 gazelle_dependencies()
+
+BARE_BUILD = """
+load("@io_bazel_rules_go//go:def.bzl", "go_prefix", "go_library")
+go_prefix("github.com/go-sql-driver/mysql")
+go_library(
+    name = "mysql",
+    srcs = [ "driver.go" ],
+    visibility = ["//visibility:public"],
+)
+"""
+
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
+new_git_repository(
+    name = "go-mysql",
+    remote = "https://github.com/go-sql-driver/mysql.git",
+    commit = "fe2230a8b20cee1e48f7b75a9b363def5f950ba0",
+    build_file_content = BARE_BUILD
+)
