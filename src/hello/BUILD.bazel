@@ -18,8 +18,14 @@ go_library(
     ],
 )
 
-go_image(
+go_binary(
     name = "hello",
+    embed = [":hellohttp_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_image(
+    name = "hello-container",
     embed = [":hellohttp_lib"],
     visibility = ["//visibility:public"],
 )
