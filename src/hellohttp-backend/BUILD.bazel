@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "hellohttp-backend_lib",
+    srcs = ["backend.go"],
+    importpath = "github.com/jasonmkurtz/hellohttp/src/hellohttp-backend",
+    visibility = ["//visibility:private"],
+    deps = ["//src/lib/routes"],
+)
+
+go_binary(
+    name = "hellohttp-backend",
+    embed = [":hellohttp-backend_lib"],
+    visibility = ["//visibility:public"],
+)

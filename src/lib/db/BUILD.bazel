@@ -1,0 +1,15 @@
+load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# gazelle:prefix github.com/jasonmkurtz/hellohttp
+gazelle(name = "gazelle")
+
+go_library(
+    name = "db",
+    srcs = ["db-types.go"],
+    importpath = "github.com/jasonmkurtz/hellohttp",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_go_sql_driver_mysql//:go_default_library"],
+    # deps = ["@hellohttp//:go_default_library"],
+    # deps = ["@com_github_go_sql_driver_mysql//:go_default_library"],
+)

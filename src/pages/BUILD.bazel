@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "pages_lib",
+    srcs = ["pages.go"],
+    importpath = "github.com/jasonmkurtz/hellohttp/src/pages",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "pages",
+    embed = [":pages_lib"],
+    visibility = ["//visibility:public"],
+)

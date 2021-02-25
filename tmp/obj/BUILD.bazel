@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "obj_lib",
+    srcs = [
+        "dog.go",
+        "obj.go",
+    ],
+    importpath = "github.com/jasonmkurtz/hellohttp/tmp/obj",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "obj",
+    embed = [":obj_lib"],
+    visibility = ["//visibility:public"],
+)

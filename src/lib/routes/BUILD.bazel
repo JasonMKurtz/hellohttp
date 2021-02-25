@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "routes",
+    srcs = ["route-types.go"],
+    importpath = "github.com/jasonmkurtz/hellohttp/src/lib/routes",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/lib/config",
+        "//src/lib/jregex",
+        "//src/lib/utils",
+        "@com_github_jasonmkurtz_hellohttp//src/lib/db:go_default_library",
+    ],
+)
