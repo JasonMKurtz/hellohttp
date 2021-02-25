@@ -1,14 +1,9 @@
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 
 # gazelle:prefix github.com/jasonmkurtz/hellohttp
 gazelle(name = "gazelle")
-
-go_binary(
-    name = "hello",
-    embed = [":hellohttp_lib"],
-    visibility = ["//visibility:public"],
-)
 
 go_library(
     name = "hellohttp_lib",
@@ -21,4 +16,10 @@ go_library(
         "//src/lib/jregex",
         "//src/lib/routes:routetypes",
     ],
+)
+
+go_image(
+    name = "hello",
+    embed = [":hellohttp_lib"],
+    visibility = ["//visibility:public"],
 )

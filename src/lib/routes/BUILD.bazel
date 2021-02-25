@@ -6,7 +6,7 @@ go_library(
     importpath = "github.com/jasonmkurtz/hellohttp/src/lib/routes",
     visibility = ["//visibility:public"],
     deps = [
-        "//src/lib/config:config",
+        "//src/lib/config",
         "//src/lib/jregex",
         "//src/lib/utils",
         "//src/lib/db",
