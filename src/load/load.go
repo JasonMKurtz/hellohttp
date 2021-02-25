@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	routetypes "../lib/routes"
+	routetypes "github.com/jasonmkurtz/hellohttp/src/lib/routes"
 )
 
 func main() {

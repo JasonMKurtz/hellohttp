@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	routetypes "../lib/routes"
+	routetypes "github.com/jasonmkurtz/hellohttp/src/lib/routes"
 )
 
 func main() {
@@ -16,6 +16,6 @@ func main() {
 	r.Listen()
 }
 
-func HandleFoo(w http.ResponseWriter, r *http.Request, route string) {
-	fmt.Fprintf(w, "You're at %s on the backend.", route)
+func HandleFoo(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
+	fmt.Fprintf(w, "You're at %s on the backend.", route.Route)
 }
