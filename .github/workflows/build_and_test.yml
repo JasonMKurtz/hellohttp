@@ -13,11 +13,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Pull dependencies
-      run: go get github.com/go-sql-driver/mysql
-
     - name: Build
-      run: go build ./src/*.go
+      run: bazel build //src/hello:hello
 
     - name: Test
       run: go test -v ./...
