@@ -26,5 +26,8 @@ jobs:
         service_account_key: ${{ secrets.GCLOUD_AUTH }}
         export_default_credentials: true
     
-    - name: Show Docker Images
-      run: docker images
+    - name: Tag Image
+      run: docker tag bazel/src/hello:hello gcr.io/hellohttp/hello-bazel:1.0
+    
+    - name: Push Image
+      run: docker push gcr.io/hellohttp/hello-bazel:1.0
