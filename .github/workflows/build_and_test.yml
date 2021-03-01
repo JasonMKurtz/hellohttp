@@ -18,3 +18,13 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+    
+    - name: Publish
+      uses: Industrial/push-docker-gcr
+      with:
+        docker_image_name: bazel/src/hello
+        docker_image_tag: hello-container
+        docker_context: .
+        gcr_host: gcr.io
+        gcr_project_id: hellohttp
+        gcr_service_key: ${{ secrets.GCLOUD_KEY }}
