@@ -15,10 +15,16 @@ jobs:
 
     - name: Build
       run: bazel run --incompatible_restrict_string_escapes=false //src/hello:hello
-
+  
+  test:
+    runs-on: ubuntu-latest
+    steps:
     - name: Test
       run: go test -v ./...
     
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@master
       with:
