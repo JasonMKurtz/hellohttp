@@ -30,4 +30,4 @@ jobs:
       run: docker tag bazel/src/hello:hello gcr.io/hellohttp/hello-bazel:1.0
     
     - name: Push Image
-      run: docker push gcr.io/hellohttp/hello-bazel:1.0
+      run: docker push gcr.io/hellohttp-a/hello-bazel:1.0
