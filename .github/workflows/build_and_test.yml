@@ -20,7 +20,7 @@ jobs:
       run: go test -v ./...
     
     - name: Publish
-      uses: Industrial/push-docker-gcr
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
       with:
         docker_image_name: bazel/src/hello
         docker_image_tag: hello-container
