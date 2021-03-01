@@ -19,12 +19,9 @@ jobs:
     - name: Test
       run: go test -v ./...
     
-    - name: Publish
-      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@master
       with:
-        docker_image_name: bazel/src/hello
-        docker_image_tag: hello-container
-        docker_context: .
-        gcr_host: gcr.io
-        gcr_project_id: hellohttp
-        gcr_service_key: ${{ secrets.GCLOUD_KEY }}
+        project_id: hellohttp
+        service_account_key: ${{ secrets.GCLOUD_KEY }}
+        export_default_credentials: true
