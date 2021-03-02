@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
 jobs:
 
   build:
@@ -39,7 +42,6 @@ jobs:
       if: always()
       uses: adamkdean/simple-slack-notify@master
       with:
-        slack_webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-        channel: '#build'
+        channel: '#builds'
         username: "Build Bot"
-        message: 'A build happened!'
+        text: 'A build happened!'
