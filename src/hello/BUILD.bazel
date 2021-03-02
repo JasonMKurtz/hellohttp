@@ -34,5 +34,6 @@ go_image(
 container_image(
     name = "hello",
     base = ":hello-container",
-    ports = ["5000"]
+    ports = ["5000"],
+    stamp = True
 )
