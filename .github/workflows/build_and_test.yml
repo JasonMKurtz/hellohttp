@@ -15,16 +15,10 @@ jobs:
 
     - name: Build
       run: bazel run --incompatible_restrict_string_escapes=false //src/hello:hello
-  
-  test:
-    runs-on: ubuntu-latest
-    steps:
+
     - name: Test
       run: go test -v ./...
     
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@master
       with:
@@ -36,7 +30,7 @@ jobs:
       run: gcloud auth configure-docker --quiet
     
     - name: Tag Image
-      run: docker tag bazel/src/hello:hello gcr.io/hellohttp-a/hello-bazel:1.0
+      run: docker tag bazel/src/hello:hello gcr.io/hellohttp-a/hello-bazel:$GITHUB_RUN_NUMBER
     
     - name: Push Image
-      run: docker push gcr.io/hellohttp-a/hello-bazel:1.0
+      run: docker push gcr.io/hellohttp-a/hello-bazel:$GITHUB_RUN_NUMBER
