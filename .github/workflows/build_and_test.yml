@@ -7,10 +7,10 @@ on:
     branches: [ master ]
 
 jobs:
-  env:
-    IMAGE: gcr.io/hellohttp-a/hello-bazel:"$GITHUB_RUN_NUMBER" 
-
   build:
+    env:
+      IMAGE: gcr.io/hellohttp-a/hello-bazel:"$GITHUB_RUN_NUMBER" 
+
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
