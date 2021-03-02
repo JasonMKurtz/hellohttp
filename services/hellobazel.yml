@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cloud.google.com/neg: '{"ingress":true}'
+  creationTimestamp: "2021-03-02T15:12:05Z"
+  finalizers:
+  - service.kubernetes.io/load-balancer-cleanup
+  labels:
+    app: hellobazel
+  managedFields:
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:labels:
+          .: {}
+          f:app: {}
+      f:spec:
+        f:externalTrafficPolicy: {}
+        f:ports:
+          .: {}
+          k:{"port":80,"protocol":"TCP"}:
+            .: {}
+            f:port: {}
+            f:protocol: {}
+            f:targetPort: {}
+        f:selector:
+          .: {}
+          f:app: {}
+        f:sessionAffinity: {}
+        f:type: {}
+    manager: GoogleCloudConsole
+    operation: Update
+    time: "2021-03-02T15:12:05Z"
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:finalizers:
+          .: {}
+          v:"service.kubernetes.io/load-balancer-cleanup": {}
+      f:status:
+        f:loadBalancer:
+          f:ingress: {}
+    manager: kube-controller-manager
+    operation: Update
+    time: "2021-03-02T15:12:44Z"
+  name: hellobazel-service
+  namespace: hellohttp
+  resourceVersion: "2387"
+  selfLink: /api/v1/namespaces/hellohttp/services/hellobazel-service
+  uid: 86c8b1d5-d6fa-4b50-818d-40b1d51ccfa4
+spec:
+  clusterIP: 10.60.14.198
+  externalTrafficPolicy: Cluster
+  ports:
+  - nodePort: 32693
+    port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: hellobazel
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+    - ip: 35.237.187.206

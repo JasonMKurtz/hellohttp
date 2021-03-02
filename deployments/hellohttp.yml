@@ -1,28 +1,23 @@
 apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
 kind: Deployment
 metadata:
-    name: hellohttp
+    name: hellobazel
     labels:
-        app: hellohttp
+        app: hellobazel
 spec:
     selector:
         matchLabels:
-            app: hellohttp
+            app: hellobazel
     replicas: 1
     template: 
         metadata:
             labels:
-                app: hellohttp
+                app: hellobazel
         spec:
             containers:
-            - image: gcr.io/hellohttp-a/hello2:1.0.168
-              name: hellohttp
+            - image: gcr.io/hellohttp-a/hello-bazel:50
+              name: hellobazel
               env:
-                - name: MYSQL_ROOT_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                        name: mysql-1593208582
-                        key: mysql-root-password
                 - name: MYSQL_HOST
                   value: "mysql"
               

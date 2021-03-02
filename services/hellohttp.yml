@@ -5,7 +5,7 @@ metadata:
   annotations:
       cloud.google.com/load-balancer-type: "Internal"
 spec:
-    type: ClusterIP
+    type: LoadBalancer
     selector:
         app: hellohttp
     ports:
