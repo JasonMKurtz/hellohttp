@@ -30,7 +30,7 @@ jobs:
       run: gcloud auth configure-docker --quiet
     
     - name: Tag Image
-      run: docker tag bazel/src/hello:hello gcr.io/hellohttp-a/hello-bazel:$GITHUB_RUN_NUMBER
+      run: docker tag bazel/src/hello:hello gcr.io/hellohttp-a/hello-bazel:"$GITHUB_RUN_NUMBER"
     
     - name: Push Image
-      run: docker push gcr.io/hellohttp-a/hello-bazel:$GITHUB_RUN_NUMBER
+      run: docker push gcr.io/hellohttp-a/hello-bazel:"$GITHUB_RUN_NUMBER"

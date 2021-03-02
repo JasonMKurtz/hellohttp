@@ -42,6 +42,7 @@ func main() {
 		routetypes.Route{Route: "/newname", Handler: AddName, DenyGet: true},
 		routetypes.Route{Route: "/config", Handler: ReadConfig},
 		routetypes.Route{Route: "/whoami", Handler: WhoAmI},
+		routetypes.Route{Route: "/foo", Handler: Bar},
 	}
 
 	app.AddService("hellohttp-backend", 80)
@@ -58,6 +59,10 @@ func main() {
 	fmt.Printf("Using database %s\nConfig Path: %s\n", getMysqlHost(), getConfigPath())
 
 	app.Listen()
+}
+
+func Foo(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
+	fmt.Fprintf(w, "This is /foo!")
 }
 
 func WhoAmI(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
