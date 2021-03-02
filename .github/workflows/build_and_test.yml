@@ -10,6 +10,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    env:
+      IMAGE: gcr.io/hellohttp-a/hello-bazel:"$GITHUB_RUN_NUMBER" 
     steps:
     - uses: actions/checkout@v2
 
@@ -30,25 +32,34 @@ jobs:
       run: gcloud auth configure-docker --quiet
     
     - name: Tag Image
-      run: docker tag bazel/src/hello:hello gcr.io/hellohttp-a/hello-bazel:"$GITHUB_RUN_NUMBER"
+      run: docker tag bazel/src/hello:hello $IMAGE
     
     - name: Push Image
-      run: docker push gcr.io/hellohttp-a/hello-bazel:"$GITHUB_RUN_NUMBER"
+      run: docker push $IMAGE
     
-    - name: Slack Notification
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        msg_minimal: true
-
     # Set up kustomize
     - name: Set up Kustomize
       run: |
         curl -o kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
         chmod u+x ./kustomize
       
-    - name: Rollout Image
+    - name: Cluster Authentication
       run: |
         gcloud container clusters get-credentials hellobazel-cluster --zone us-east1-d --project hellohttp
-      
+    
+    - name: Update Image
+      run: |
+        ./kustomize edit set image $IMAGE
+        ./kustomize build . | kubectl apply -f -
+
+    - name: Get Status
+        kubectl rollout status deployment/hellobazel
+        kubectl get services -o wide
+
+    - name: Slack Notification
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        msg_minimal: true
+        
       
