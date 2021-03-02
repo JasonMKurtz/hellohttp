@@ -43,8 +43,7 @@ jobs:
     
     - name: Get Status
       run: |
-        kubectl rollout status deployment/hellobazel
-        kubectl get services -o wide
+        kubectl get deploy
 
     - name: Slack Notification
       uses: rtCamp/action-slack-notify@v2
