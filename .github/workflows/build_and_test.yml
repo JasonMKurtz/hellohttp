@@ -41,8 +41,13 @@ jobs:
     - name: Push Image
       run: docker push $IMAGE:$GITHUB_RUN_NUMBER
     
+    - name: Configure kubectl for cluster
+      run: |
+        kubectl config set-context gke_hellohttp-a_us-east1-d_hellobazel-cluster
+    
     - name: Get Status
       run: |
+        kubectl get namespaces
         kubectl -n hellobazel get deploy
 
     - name: Slack Notification
