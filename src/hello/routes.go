@@ -61,7 +61,7 @@ func main() {
 	app.Listen()
 }
 
-func Foo(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
+func Bar(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	fmt.Fprintf(w, "This is /foo!")
 }
 
