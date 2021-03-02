@@ -34,3 +34,12 @@ jobs:
     
     - name: Push Image
       run: docker push gcr.io/hellohttp-a/hello-bazel:"$GITHUB_RUN_NUMBER"
+    
+    - name: Notify
+      if: always()
+      uses: adamkdean/simple-slack-notify@master
+      with:
+        slack_webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        channel: '#build'
+        username: "Build Bot"
+        message: 'A build happened!'
