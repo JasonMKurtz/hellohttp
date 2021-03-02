@@ -53,6 +53,7 @@ jobs:
         ./kustomize build . | kubectl apply -f -
 
     - name: Get Status
+      run: |
         kubectl rollout status deployment/hellobazel
         kubectl get services -o wide
 
