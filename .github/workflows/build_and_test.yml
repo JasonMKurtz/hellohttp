@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ master ]
 
-env:
-  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
 jobs:
 
   build:
@@ -38,10 +35,7 @@ jobs:
     - name: Push Image
       run: docker push gcr.io/hellohttp-a/hello-bazel:"$GITHUB_RUN_NUMBER"
     
-    - name: Notify
-      if: always()
-      uses: adamkdean/simple-slack-notify@master
-      with:
-        channel: '#builds'
-        username: "Build Bot"
-        text: 'A build happened!'
+    - name: Slack Notification
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
