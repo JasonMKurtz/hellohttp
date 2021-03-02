@@ -33,7 +33,7 @@ jobs:
 
     - name: Cluster Authentication
       run: |
-        gcloud container clusters get-credentials hellobazel-cluster --zone us-east1-d --project hellohttp
+        gcloud container clusters get-credentials hellobazel-cluster --zone us-east1-d --project hellohttp-a
     
     - name: Tag Image
       run: docker tag bazel/src/hello:hello $IMAGE:$GITHUB_RUN_NUMBER
