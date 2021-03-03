@@ -72,9 +72,11 @@ func Bar(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 
 func WhoAmI(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	host := os.Getenv("HOSTNAME")
+	image := os.Getenv("MY_IMAGE")
 	w.Header().Set("Content-type", "application/json")
 	ret := map[string]string{
-		"Host": host,
+		"Host":  host,
+		"Image": image,
 	}
 	js, err := json.Marshal(ret)
 	if err != nil {

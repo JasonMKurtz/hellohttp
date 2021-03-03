@@ -20,4 +20,8 @@ spec:
               env:
                 - name: MYSQL_HOST
                   value: "mysql"
-              
+                - name: MY_IMAGE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: spec.nodeName
+                
