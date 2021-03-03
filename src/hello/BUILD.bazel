@@ -9,7 +9,7 @@ gazelle(name = "gazelle")
 go_library(
     name = "hellohttp_lib",
     srcs = ["routes.go"],
-    importpath = "github.com/jasonmkurtz/hellohttp/src/hello",
+    importpath = "github.com/jasonmkurtz/hellohttp",
     visibility = ["//visibility:private"],
     deps = [
         "//src/lib/config",
@@ -35,5 +35,5 @@ container_image(
     name = "hello",
     base = ":hello-container",
     ports = ["5000"],
-    stamp = True
+    stamp = True,
 )
