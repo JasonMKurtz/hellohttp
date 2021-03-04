@@ -45,14 +45,13 @@ jobs:
       run: |
         kubectl config set-context gke_hellohttp-a_us-east1-d_hellobazel-cluster
     
-    - name: Get Status
-      run: |
-        kubectl get namespaces
-        kubectl -n hellohttp get deploy
-    
     - name: Deploy
       run: |
         kubectl -n hellohttp set image deployment/hellobazel hellobazel=$IMAGE:$GITHUB_RUN_NUMBER
+    
+    - name: Update env variable 
+      run: |
+        kubectl -n hellohttp set env deployment/hellobazel MY_IMAGE=$IMAGE:$GITHUB_RUN_NUMBER
 
     - name: Slack Notification
       uses: rtCamp/action-slack-notify@v2
