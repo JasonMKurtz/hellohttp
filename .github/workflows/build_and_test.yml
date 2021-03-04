@@ -54,9 +54,13 @@ jobs:
         kubectl -n hellohttp set env deployment/hellobazel MY_IMAGE=$IMAGE:$GITHUB_RUN_NUMBER
 
     - name: Slack Notification
-      uses: rtCamp/action-slack-notify@v2
+      uses: voxmedia/github-action-slack-notify-build@v1
       env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        msg_minimal: true
-        
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN  }}
+      with:
+        channel: builds
+        status: SUCCESS
+        color: good
+          
+
       
