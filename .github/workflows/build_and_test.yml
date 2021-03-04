@@ -33,7 +33,7 @@ jobs:
 
     - name: Cluster Authentication
       run: |
-        gcloud container clusters get-credentials hellobazel-cluster --zone us-east1-d --project hellohttp-a
+        gcloud container clusters get-credentials ${{ secrets.CLUSTER }} --zone ${{ secrets.ZONE }} --project ${{ secrets.PROJECT }}
     
     - name: Tag Image
       run: docker tag bazel/src/hello:hello $IMAGE:$GITHUB_RUN_NUMBER
@@ -43,13 +43,13 @@ jobs:
     
     - name: Configure kubectl for cluster
       run: |
-        kubectl config set-context gke_hellohttp-a_us-east1-d_hellobazel-cluster
+        kubectl config set-context ${{ secrets.CONTEXT }}
     
     - name: Deploy
       run: |
         kubectl -n hellohttp set image deployment/hellobazel hellobazel=$IMAGE:$GITHUB_RUN_NUMBER
     
-    - name: Update env variable 
+    - name: Update Deployment Environment 
       run: |
         kubectl -n hellohttp set env deployment/hellobazel MY_IMAGE=$IMAGE:$GITHUB_RUN_NUMBER
 
