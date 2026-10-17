@@ -64,8 +64,13 @@ func main() {
 	app.Listen()
 }
 
+// version is stamped in at build time (the git commit, from CI):
+//
+//	go build -ldflags "-X main.version=$(git rev-parse HEAD)" ./src/hello
+var version = "dev"
+
 func Version(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
-	fmt.Fprintf(w, "1.0")
+	fmt.Fprint(w, version)
 }
 
 func Bar(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
