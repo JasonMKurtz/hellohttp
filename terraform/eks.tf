@@ -63,3 +63,13 @@ resource "aws_eks_access_policy_association" "admin" {
     type = "cluster"
   }
 }
+
+# New access policies take a few seconds to reach the Kubernetes API server.
+# Without this, creating the objects in k8s.tf right away gets "forbidden".
+resource "time_sleep" "access_propagation" {
+  count = var.cluster_enabled ? 1 : 0
+
+  create_duration = "30s"
+
+  depends_on = [aws_eks_access_policy_association.admin]
+}

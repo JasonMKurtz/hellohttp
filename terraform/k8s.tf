@@ -97,7 +97,7 @@ resource "kubernetes_deployment_v1" "hellohttp" {
     ignore_changes = [spec[0].template[0].spec[0].container[0].image]
   }
 
-  depends_on = [aws_eks_access_policy_association.admin]
+  depends_on = [time_sleep.access_propagation]
 }
 
 resource "kubernetes_service_v1" "hellohttp" {
@@ -117,7 +117,7 @@ resource "kubernetes_service_v1" "hellohttp" {
     }
   }
 
-  depends_on = [aws_eks_access_policy_association.admin]
+  depends_on = [time_sleep.access_propagation]
 }
 
 # Hands Ingresses to EKS Auto Mode's built-in ALB controller.
@@ -135,7 +135,7 @@ resource "kubernetes_ingress_class_v1" "alb" {
     controller = "eks.amazonaws.com/alb"
   }
 
-  depends_on = [aws_eks_access_policy_association.admin]
+  depends_on = [time_sleep.access_propagation]
 }
 
 # Creates an internet-facing Application Load Balancer.
