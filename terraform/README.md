@@ -8,12 +8,14 @@ Creates everything needed to run hellohttp on AWS (eu-north-1):
   (toggle with `cluster_enabled`)
 - `ecr.tf`: `hellohttp` image repository
 - `github.tf`: OIDC trust and a role GitHub Actions uses to push images and deploy
+- `budget.tf`: account-wide $10/month AWS Budget that emails `budget_email`
 - `k8s.tf`: hellohttp Deployment, Service, and an Ingress that Auto Mode turns
   into an internet-facing Application Load Balancer
 
 ### Create
 ```
 $ cd terraform
+$ echo 'budget_email = "you@example.com"' > terraform.tfvars   # gitignored
 $ terraform init
 $ terraform apply          # ~10-15 min, mostly the EKS control plane
 $ $(terraform output -raw configure_kubectl)

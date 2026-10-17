@@ -38,6 +38,17 @@ variable "replicas" {
   default = 2
 }
 
+variable "budget_limit_usd" {
+  type    = string
+  default = "10"
+}
+
+# Where budget alerts go. Set it in terraform.tfvars (gitignored) to keep
+# the address out of the repo.
+variable "budget_email" {
+  type = string
+}
+
 # GitHub repo whose master-branch workflows may push images and deploy.
 variable "github_repo" {
   type    = string

@@ -8,3 +8,4 @@ hellohttp.json
 *.tfstate
 *.tfstate.*
 tfplan
+*.tfvars
