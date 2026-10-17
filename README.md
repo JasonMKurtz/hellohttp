@@ -26,7 +26,7 @@ downtime. `/version` returns the deployed commit.
 
 ### Run locally
 ```
-$ go run ./src/hello          # listens on :5000
+$ go run ./src/hello          # listens on :8080 (or $PORT)
 $ go test ./...
 ```
 
