@@ -1,3 +1,11 @@
 out/
 gcloud/
 hellohttp.json
+.claude/
+
+# terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+tfplan
+*.tfvars
