@@ -94,6 +94,7 @@ func WhoAmI(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	ret := map[string]string{
 		"Host":  host,
 		"Image": image,
+		"Version": version,
 	}
 	js, err := json.Marshal(ret)
 	if err != nil {
