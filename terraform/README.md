@@ -7,6 +7,7 @@ Creates everything needed to run hellohttp on AWS (eu-north-1):
 - `eks.tf`: EKS Auto Mode cluster, plus cluster-admin access for `admin_principal_arns`
   (toggle with `cluster_enabled`)
 - `ecr.tf`: `hellohttp` image repository
+- `github.tf`: OIDC trust and a role GitHub Actions uses to push images and deploy
 - `k8s.tf`: hellohttp Deployment, Service, and an Ingress that Auto Mode turns
   into an internet-facing Application Load Balancer
 
@@ -19,12 +20,24 @@ $ $(terraform output -raw configure_kubectl)
 ```
 
 ### Deploy an image
-Nodes are amd64; build for that even on an arm64 Mac.
+Pushing to `master` runs `.github/workflows/build_and_deploy.yml`, which
+builds the image, pushes it to ECR as `:<git sha>` and `:latest`, and runs
+`kubectl set image`. It authenticates with the `hellohttp-github-deploy` role
+from `github.tf` (OIDC, no stored keys), so run `terraform apply` once before
+the first push. If the cluster is paused, the image is still pushed and the
+deploy step is skipped.
+
+Terraform ignores the Deployment's image after creating it, so applies don't
+roll back what CI deployed. A recreated Deployment (e.g. after a pause)
+starts from `:latest`, the most recent master build.
+
+To deploy by hand instead (nodes are amd64; build for that even on an arm64
+Mac):
 ```
 $ REPO=$(terraform output -raw ecr_repository_url)
 $ aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin ${REPO%%/*}
 $ docker buildx build --platform linux/amd64 -f docker/hello2/Dockerfile -t $REPO:v1 --push ..
-$ terraform apply -var image_tag=v1
+$ kubectl set image deployment/hellohttp hellohttp=$REPO:v1
 $ curl $(terraform output -raw app_url)/version
 ```
 

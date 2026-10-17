@@ -1,0 +1,101 @@
+name: Build & Deploy
+
+# PRs: test and build the image (no push).
+# master: also push to ECR and roll it out to the EKS cluster.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: eu-north-1
+  CLUSTER: hellohttp
+  ECR_REPO: 162612267003.dkr.ecr.eu-north-1.amazonaws.com/hellohttp
+  # Created by terraform/github.tf; only assumable from master.
+  ROLE_ARN: arn:aws:iam::162612267003:role/hellohttp-github-deploy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # lets the job request an OIDC token for AWS
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+
+      - name: Test
+        run: |
+          go vet ./...
+          go test ./...
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Configure AWS credentials
+        if: github.event_name == 'push'
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to ECR
+        if: github.event_name == 'push'
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Nodes are amd64. The Dockerfile cross-compiles, so this is fast.
+      - name: Build${{ github.event_name == 'push' && ' and push' || '' }}
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/hello2/Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.ECR_REPO }}:${{ github.sha }}
+            ${{ env.ECR_REPO }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    concurrency: deploy # one rollout at a time
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # The cluster may be paused (terraform cluster_enabled=false). The image
+      # is already pushed as :latest, so it gets picked up when it's back.
+      - name: Check cluster is running
+        id: cluster
+        run: |
+          if out=$(aws eks describe-cluster --name "$CLUSTER" 2>&1); then
+            echo "up=true" >> "$GITHUB_OUTPUT"
+          elif grep -q ResourceNotFoundException <<<"$out"; then
+            echo "up=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Cluster $CLUSTER isn't running; image pushed, skipping deploy."
+          else
+            echo "$out"
+            exit 1
+          fi
+
+      - name: Deploy
+        if: steps.cluster.outputs.up == 'true'
+        run: |
+          aws eks update-kubeconfig --name "$CLUSTER"
+          kubectl set image deployment/hellohttp hellohttp="$ECR_REPO:$GITHUB_SHA"
+          kubectl rollout status deployment/hellohttp --timeout=5m

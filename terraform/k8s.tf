@@ -91,6 +91,12 @@ resource "kubernetes_deployment_v1" "hellohttp" {
   # Don't block the apply waiting for pods (e.g. before an image is pushed).
   wait_for_rollout = false
 
+  # CI deploys new versions with `kubectl set image`; don't roll them back.
+  # image_tag only sets the image when the Deployment is first created.
+  lifecycle {
+    ignore_changes = [spec[0].template[0].spec[0].container[0].image]
+  }
+
   depends_on = [aws_eks_access_policy_association.admin]
 }
 

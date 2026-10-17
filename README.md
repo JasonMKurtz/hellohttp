@@ -7,9 +7,11 @@ This repository stores a simple "hello world" golang web app and the configurati
 $ vi src/hello.go 
 $ git commit -am "Code change"
 $ git push 
-... Watch circleci pipeline ... 
-$ curl http://hellohttp.jkurtz.net # observe code change
+... Watch the "Build & Deploy" GitHub Actions run ... 
+$ curl $(terraform -chdir=terraform output -raw app_url)/version
 ```
+
+Infrastructure (EKS, ECR, load balancer) lives in [`terraform/`](terraform/README.md).
 
 
 ### Running the go app

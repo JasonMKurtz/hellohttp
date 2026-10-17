@@ -6,6 +6,10 @@ output "ecr_repository_url" {
   value = aws_ecr_repository.hellohttp.repository_url
 }
 
+output "github_deploy_role_arn" {
+  value = aws_iam_role.github_deploy.arn
+}
+
 output "app_url" {
   value = var.cluster_enabled ? "http://${try(kubernetes_ingress_v1.hellohttp[0].status[0].load_balancer[0].ingress[0].hostname, "")}" : null
 }
