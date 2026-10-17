@@ -17,6 +17,16 @@ import (
 
 var app routetypes.Routes
 
+// Defaults to 8080 rather than 5000, which macOS's AirPlay Receiver holds.
+func getPort() string {
+	port := os.Getenv("PORT")
+	if port != "" {
+		return port
+	}
+
+	return "8080"
+}
+
 func getMysqlHost() string {
 	host := os.Getenv("MYSQL_HOST")
 	if host != "" {
@@ -36,7 +46,7 @@ func getConfigPath() string {
 }
 
 func main() {
-	app = routetypes.Routes{Port: "5000", Primary: HandleHello, Missing: Missing}
+	app = routetypes.Routes{Port: getPort(), Primary: HandleHello, Missing: Missing}
 	app.Routes = []routetypes.Route{
 		routetypes.Route{Route: "/hello", Handler: HandleHello},
 		routetypes.Route{Route: "^/greet/?(?P<name>[a-zA-Z]+)?/?$", Handler: Greet, DenyPost: true},

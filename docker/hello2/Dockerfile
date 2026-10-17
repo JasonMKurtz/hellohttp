@@ -15,5 +15,5 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags "-X main.v
 
 FROM scratch
 COPY --from=builder /hello /
-EXPOSE 5000
+EXPOSE 8080
 CMD ["/hello"]

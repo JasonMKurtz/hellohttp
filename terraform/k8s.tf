@@ -36,7 +36,7 @@ provider "kubernetes" {
 locals {
   k8s_count      = var.cluster_enabled ? 1 : 0
   app_labels     = { app = "hellohttp" }
-  container_port = 5000 # src/hello/routes.go
+  container_port = 5000 # passed to the app as PORT (its default is 8080)
 }
 
 # Zero-downtime rollouts, part 1: Auto Mode adds an ALB readiness gate to pods
@@ -102,6 +102,11 @@ resource "kubernetes_deployment_v1" "hellohttp" {
 
           port {
             container_port = local.container_port
+          }
+
+          env {
+            name  = "PORT"
+            value = tostring(local.container_port)
           }
 
           env {
