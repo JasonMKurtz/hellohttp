@@ -1,7 +1,7 @@
 # terraform-gke
 
-Runs hellohttp on GKE in GCP project `hellohttp-a`, sized to fit GCP's free
-tier: a Standard zonal cluster in us-central1-a with one e2-micro node, and
+Runs hellohttp on GKE in GCP project `hellohttp-a`, as cheaply as GKE goes:
+a Standard zonal cluster in us-central1-a with one spot e2-small node, and
 no load balancer. A separate stack (own state) from the EKS one in
 `../terraform`, built the same way so the two can be compared file by file:
 
@@ -32,6 +32,9 @@ $ terraform apply          # ~10 min, mostly the cluster
 ```
 The pods sit in `ImagePullBackOff` until you push an image (next step).
 
+The braces in `${REPO}:latest` below matter in zsh, which otherwise reads
+`:l` as a modifier (lowercase) and mangles the tag.
+
 ### Deploy an image
 Cloud Build builds the image in GCP (amd64, like the nodes), so Docker isn't
 needed locally. It gets a `git archive` of the committed build inputs rather
@@ -42,10 +45,10 @@ $ REPO=$(terraform -chdir=terraform-gke output -raw image_repo)
 $ TAG=$(git rev-parse --short HEAD)
 $ git archive --format=tar.gz -o /tmp/hellohttp-src.tgz HEAD go.mod go.sum src docker
 $ gcloud builds submit --config terraform-gke/cloudbuild.yaml \
-    --substitutions _IMAGE=$REPO:$TAG,_VERSION=$TAG /tmp/hellohttp-src.tgz
-$ gcloud artifacts docker tags add $REPO:$TAG $REPO:latest
+    --substitutions _IMAGE=${REPO}:${TAG},_VERSION=${TAG} /tmp/hellohttp-src.tgz
+$ gcloud artifacts docker tags add ${REPO}:${TAG} ${REPO}:latest
 $ $(terraform -chdir=terraform-gke output -raw configure_kubectl)
-$ kubectl set image deployment/hellohttp hellohttp=$REPO:$TAG
+$ kubectl set image deployment/hellohttp hellohttp=${REPO}:${TAG}
 $ kubectl rollout status deployment/hellohttp
 $ curl $(terraform -chdir=terraform-gke output -raw app_url)/version
 ```
@@ -59,23 +62,17 @@ node on upgrades and repairs, which changes the IP; run `terraform refresh`
 to update the output.
 
 ### Cost
-Free, as long as this is the only thing using the free tier on the billing
-account:
+About $4-8/month while running, or a few cents for an afternoon:
 - Cluster management fee ($0.10/hour): covered by GKE's monthly free-tier
   credit, for one zonal or Autopilot cluster.
-- The e2-micro node and its 30 GB standard disk: Compute Engine's free tier,
-  one VM per billing account, us-central1/us-west1/us-east1 only.
+- The spot e2-small node: about $4/month. Its 30 GB standard disk is in
+  Compute Engine's free tier.
+- The node's public IPv4 address: about $3.65/month.
 - Artifact Registry (0.5 GB) and Cloud Build (2,500 build-minutes/month):
   free tiers.
 
-Not free, and small: the node's public IPv4 address may be billed (about
-$3.65/month), and outbound traffic over 1 GB/month.
-
-If pods stay `Pending` with "Insufficient memory", the e2-micro is too small
-for GKE's system pods plus the app. Switch to a spot e2-small (~$4/month):
-```
-$ terraform apply -var node_machine_type=e2-small -var node_spot=true
-```
+The free tier's e2-micro VM doesn't work: GKE's own system pods need more
+than its ~600 MiB, so kube-dns never schedules.
 
 ### Try the load balancer
 The Ingress (an external Application Load Balancer, ~$0.025/hour) is off by
@@ -94,8 +91,8 @@ $ terraform apply -var cluster_enabled=false   # off
 $ terraform apply                              # back on (~10 min)
 ```
 Removes the cluster and node (and the load balancer, if on). The network,
-service account, and images are kept. Mostly useful if you need the free
-tier for something else.
+service account, and images are kept, all free. Pause whenever you're done
+experimenting.
 
 ### Destroy
 ```

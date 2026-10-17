@@ -32,11 +32,32 @@ resource "google_container_cluster" "this" {
     channel = "REGULAR"
   }
 
-  # The Cloud Logging and Monitoring agents run on every node and need more
-  # memory than an e2-micro can spare. `kubectl logs` still works without
-  # them; logs just aren't kept or shown in the console.
+  # GKE's default system pods ask for ~600 MiB, half of what an e2-small
+  # leaves for pods. Turn off the optional ones so there's room to
+  # experiment.
+  #
+  # The Cloud Logging and Monitoring agents: `kubectl logs` still works
+  # without them; logs just aren't kept or shown in the console.
   logging_service    = "none"
   monitoring_service = "none"
+
+  monitoring_config {
+    enable_components = []
+    managed_prometheus {
+      enabled = false
+    }
+  }
+
+  addons_config {
+    # NFS volumes from Filestore. Persistent Disk volumes still work.
+    gcp_filestore_csi_driver_config {
+      enabled = false
+    }
+    # A DNS cache on each node; pods use kube-dns directly instead.
+    dns_cache_config {
+      enabled = false
+    }
+  }
 
   # On by default in the provider; it would block cluster_enabled=false.
   deletion_protection = false

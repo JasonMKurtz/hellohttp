@@ -104,7 +104,7 @@ resource "kubernetes_deployment_v1" "hellohttp" {
           }
 
           # What the scheduler reserves on the node for each pod. Kept small
-          # so two pods, plus a third during a rollout, fit on an e2-micro.
+          # so two pods, plus a third during a rollout, fit on one small node.
           resources {
             requests = {
               cpu    = "10m"
@@ -146,15 +146,6 @@ resource "kubernetes_service_v1" "hellohttp" {
 
   metadata {
     name = "hellohttp"
-    annotations = var.ingress_enabled ? {
-      # Container-native load balancing: the load balancer sends traffic to
-      # pod IPs directly (through a "network endpoint group") instead of
-      # bouncing through nodes. Part 2: GKE then adds a readiness gate to
-      # each pod, so a new pod only counts as Ready once the load balancer's
-      # health check passes, not just its own readiness probe. (On EKS this
-      # took a namespace label.)
-      "cloud.google.com/neg" = jsonencode({ ingress = true })
-    } : {}
   }
 
   spec {
@@ -166,6 +157,17 @@ resource "kubernetes_service_v1" "hellohttp" {
       target_port = local.container_port
       node_port   = var.node_port
     }
+  }
+
+  # GKE adds `cloud.google.com/neg: {"ingress":true}` to every Service on
+  # VPC-native clusters: container-native load balancing, where a load
+  # balancer sends traffic to pod IPs directly (through a "network endpoint
+  # group") instead of bouncing through nodes. Part 2: with an Ingress, GKE
+  # then adds a readiness gate to each pod, so a new pod only counts as
+  # Ready once the load balancer's health check passes, not just its own
+  # readiness probe. (On EKS this took a namespace label.)
+  lifecycle {
+    ignore_changes = [metadata[0].annotations["cloud.google.com/neg"]]
   }
 }
 

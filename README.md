@@ -32,7 +32,7 @@ $ go test ./...
 
 ### More
 - [`terraform/README.md`](terraform/README.md): what each file creates, manual deploys, destroy caveats
-- [`terraform-gke/README.md`](terraform-gke/README.md): the same app on GKE, sized for GCP's free tier, as a separate stack
+- [`terraform-gke/README.md`](terraform-gke/README.md): the same app on a minimal GKE cluster (~$4-8/month), as a separate stack
 - Terraform state is local (`terraform/terraform.tfstate`); don't lose it
 - A $10/month AWS Budget emails `budget_email`
 - `deployments/`, `services/`, `ingress/`, `mysql/`: legacy GKE manifests, not used

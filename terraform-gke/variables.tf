@@ -3,8 +3,8 @@ variable "project" {
   default = "hellohttp-a"
 }
 
-# The free tier's e2-micro VM and 30 GB disk only apply in us-central1,
-# us-west1, and us-east1.
+# Among the cheapest regions, and where the free tier's 30 GB disk applies
+# (also us-west1 and us-east1).
 variable "region" {
   type    = string
   default = "us-central1"
@@ -18,19 +18,19 @@ variable "zone" {
   default = "us-central1-a"
 }
 
-# e2-micro is free (one per billing account) but has only 1 GB of RAM, much
-# of it used by GKE's own pods. If pods stay Pending for lack of memory, use
-# e2-small with node_spot = true (~$4/month).
+# The smallest machine GKE runs on. e2-micro (free tier) was tried: its
+# ~600 MiB for pods isn't enough even for GKE's own system pods, so
+# kube-dns never scheduled.
 variable "node_machine_type" {
   type    = string
-  default = "e2-micro"
+  default = "e2-small"
 }
 
-# Spot VMs are 60-90% cheaper but can be stopped at any time. The free tier
-# doesn't apply to them, so leave this off for e2-micro.
+# Spot VMs are 60-90% cheaper (~$4/month for an e2-small) but Google can
+# stop them at any time; GKE then brings up a replacement node.
 variable "node_spot" {
   type    = bool
-  default = false
+  default = true
 }
 
 # The load balancer has no free tier (~$18/month). Without it, the app is
