@@ -1,5 +1,5 @@
 output "cluster_name" {
-  value = aws_eks_cluster.this.name
+  value = one(aws_eks_cluster.this[*].name)
 }
 
 output "ecr_repository_url" {
@@ -7,5 +7,5 @@ output "ecr_repository_url" {
 }
 
 output "configure_kubectl" {
-  value = "aws eks update-kubeconfig --region ${var.region} --name ${aws_eks_cluster.this.name}"
+  value = var.cluster_enabled ? "aws eks update-kubeconfig --region ${var.region} --name ${var.cluster_name}" : null
 }

@@ -1,5 +1,7 @@
 # EKS Auto Mode: AWS manages nodes (Karpenter), load balancers, and EBS storage.
 resource "aws_eks_cluster" "this" {
+  count = var.cluster_enabled ? 1 : 0
+
   name     = var.cluster_name
   version  = var.kubernetes_version
   role_arn = aws_iam_role.cluster.arn
@@ -44,16 +46,16 @@ resource "aws_eks_cluster" "this" {
 
 # Who can use kubectl. Replaces the console's "creator is admin" default.
 resource "aws_eks_access_entry" "admin" {
-  for_each = toset(var.admin_principal_arns)
+  for_each = var.cluster_enabled ? toset(var.admin_principal_arns) : toset([])
 
-  cluster_name  = aws_eks_cluster.this.name
+  cluster_name  = aws_eks_cluster.this[0].name
   principal_arn = each.key
 }
 
 resource "aws_eks_access_policy_association" "admin" {
   for_each = aws_eks_access_entry.admin
 
-  cluster_name  = aws_eks_cluster.this.name
+  cluster_name  = aws_eks_cluster.this[0].name
   principal_arn = each.value.principal_arn
   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 

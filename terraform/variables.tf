@@ -8,6 +8,14 @@ variable "cluster_name" {
   default = "hellohttp"
 }
 
+# Off switch for everything that costs money. false removes the cluster,
+# which also terminates its nodes and releases their public IPs. The VPC,
+# IAM roles, and ECR repo (free or near-free) are kept.
+variable "cluster_enabled" {
+  type    = bool
+  default = true
+}
+
 variable "kubernetes_version" {
   type    = string
   default = "1.36"
