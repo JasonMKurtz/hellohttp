@@ -1,11 +1,15 @@
 package routetypes
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"os/signal"
 	"regexp"
 	"strings"
+	"syscall"
 	"time"
 
 	config "github.com/jasonmkurtz/hellohttp/src/lib/config"
@@ -145,10 +149,30 @@ func (r *Routes) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	return
 }
 
+// How long to keep serving after SIGTERM. Kubernetes sends SIGTERM as soon
+// as a pod starts terminating, but the load balancer takes a few seconds to
+// stop routing to it; exiting right away drops those requests.
+var drainDelay = 15 * time.Second
+
 func (r *Routes) Listen() {
+	srv := &http.Server{Addr: fmt.Sprintf(":%s", r.Port), Handler: r}
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, os.Interrupt)
+
+	go func() {
+		<-stop
+		fmt.Printf("Shutting down in %s...\n", drainDelay)
+		time.Sleep(drainDelay)
+
+		// Stop accepting connections and let in-flight requests finish.
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		srv.Shutdown(ctx)
+	}()
+
 	fmt.Printf("Listening on :%s...\n", r.Port)
-	err := http.ListenAndServe(fmt.Sprintf(":%s", r.Port), r)
-	if err != nil {
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		fmt.Printf("%s\n", err)
 	}
 }
