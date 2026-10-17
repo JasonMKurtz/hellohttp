@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	config "github.com/jasonmkurtz/hellohttp/src/lib/config"
 	db "github.com/jasonmkurtz/hellohttp/src/lib/db"
@@ -102,13 +104,20 @@ func ReadConfig(w http.ResponseWriter, r *http.Request, route routetypes.Route) 
 	fmt.Fprintf(w, "Data: %s.\n", data)
 }
 
+// findGreeting looks up a custom greeting for name, falling back to "Hey"
+// if there isn't one or the database is unreachable.
 func findGreeting(name string) string {
 	db := app.Database.Open()
+	defer db.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 
 	var greeting sql.NullString
-	err := db.QueryRow("SELECT greeting FROM names WHERE name=?", name).Scan(&greeting)
+	err := db.QueryRowContext(ctx, "SELECT greeting FROM names WHERE name=?", name).Scan(&greeting)
 	if err != nil && err != sql.ErrNoRows {
-		panic(err)
+		fmt.Printf("greeting lookup for %s failed: %v\n", name, err)
+		return "Hey"
 	}
 
 	if greeting.Valid && greeting.String != "" {
@@ -165,7 +174,12 @@ func Greet(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
 	}
 
 	backend := app.Services["hellohttp-backend"]
-	fmt.Fprintf(w, "Backend says: \"%s\"", backend.Request("api/foo"))
+	reply, err := backend.Request("api/foo")
+	if err != nil {
+		fmt.Printf("backend request failed: %v\n", err)
+		return
+	}
+	fmt.Fprintf(w, "Backend says: \"%s\"", reply)
 }
 
 func Missing(w http.ResponseWriter, r *http.Request, route routetypes.Route) {
