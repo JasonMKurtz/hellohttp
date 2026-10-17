@@ -1,11 +1,9 @@
-data "google_project" "this" {}
-
 # Covers the whole billing account, not just this project, so it also
 # catches anything created by hand. Kept even when cluster_enabled=false.
 # Alerts email the billing account's admins (you). Billing data lags by
 # hours, so treat this as a backstop, not a real-time alarm.
 resource "google_billing_budget" "monthly" {
-  billing_account = data.google_project.this.billing_account
+  billing_account = var.billing_account
   display_name    = "monthly-cost"
 
   amount {

@@ -43,3 +43,10 @@ variable "budget_limit_usd" {
   type    = string
   default = "10"
 }
+
+# The "Personal" billing account that hellohttp-a is linked to
+# (`gcloud billing projects describe hellohttp-a`).
+variable "billing_account" {
+  type    = string
+  default = "01E592-95E34C-CF77B4"
+}

@@ -20,7 +20,6 @@ europe-southwest1 (Madrid). A separate stack (own state) from the EKS one in
 $ gcloud auth login
 $ gcloud auth application-default login     # what Terraform uses
 $ gcloud config set project hellohttp-a
-$ gcloud services enable cloudresourcemanager.googleapis.com
 $ gcloud components install gke-gcloud-auth-plugin   # for kubectl
 ```
 

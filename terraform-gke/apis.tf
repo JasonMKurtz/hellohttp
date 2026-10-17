@@ -6,9 +6,6 @@ resource "google_project_service" "this" {
     "artifactregistry.googleapis.com",
     "billingbudgets.googleapis.com",
     "cloudbuild.googleapis.com", # builds the image (see README)
-    # budget.tf reads the project during plan, before this resource could
-    # turn it on, so the first apply needs it enabled by hand (see README).
-    "cloudresourcemanager.googleapis.com",
     "compute.googleapis.com",
     "container.googleapis.com",
   ])
