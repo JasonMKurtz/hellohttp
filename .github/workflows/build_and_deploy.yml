@@ -57,6 +57,7 @@ jobs:
           file: docker/hello2/Dockerfile
           platforms: linux/amd64
           push: ${{ github.event_name == 'push' }}
+          build-args: VERSION=${{ github.sha }}
           tags: |
             ${{ env.ECR_REPO }}:${{ github.sha }}
             ${{ env.ECR_REPO }}:latest

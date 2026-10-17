@@ -8,6 +8,17 @@ import (
 	routetypes "github.com/jasonmkurtz/hellohttp/src/lib/routes"
 )
 
+func TestVersionReportsStampedVersion(t *testing.T) {
+	version = "abc123"
+
+	rec := httptest.NewRecorder()
+	Version(rec, httptest.NewRequest("GET", "/version", nil), routetypes.Route{})
+
+	if got := rec.Body.String(); got != "abc123" {
+		t.Errorf("body %q, want %q", got, "abc123")
+	}
+}
+
 // Greet must still answer when MySQL and hellohttp-backend aren't running,
 // instead of panicking (which the load balancer turns into a 502).
 func TestGreetWithoutDependencies(t *testing.T) {
