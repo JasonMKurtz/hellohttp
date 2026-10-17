@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	config "github.com/jasonmkurtz/hellohttp/src/lib/config"
 	db "github.com/jasonmkurtz/hellohttp/src/lib/db"
@@ -41,17 +42,21 @@ func (s *Service) getString() string {
 	return fmt.Sprintf("http://%s:%d", s.name, s.port)
 }
 
-func (s *Service) Request(path string) string {
-	resp, err := http.Get(fmt.Sprintf("%s/%s", s.getString(), path))
+var serviceClient = &http.Client{Timeout: 2 * time.Second}
+
+func (s *Service) Request(path string) (string, error) {
+	resp, err := serviceClient.Get(fmt.Sprintf("%s/%s", s.getString(), path))
 	if err != nil {
-		fmt.Printf("%v\n", err)
-		panic(err)
+		return "", err
 	}
 
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
-	return string(body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
 }
 
 func (r *Routes) SetConfigPath(p string) {
