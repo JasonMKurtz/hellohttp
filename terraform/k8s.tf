@@ -39,6 +39,26 @@ locals {
   container_port = 5000 # src/hello/routes.go
 }
 
+# Zero-downtime rollouts, part 1: Auto Mode adds an ALB readiness gate to pods
+# in labeled namespaces, so a new pod only counts as Ready once the ALB has
+# registered it and its health check passes, not just when the pod's own
+# readiness probe does. (Label key read from the cluster's
+# eks-load-balancing-webhook; it differs from the self-managed controller's.)
+resource "kubernetes_labels" "default_namespace" {
+  count = local.k8s_count
+
+  api_version = "v1"
+  kind        = "Namespace"
+  metadata {
+    name = "default"
+  }
+  labels = {
+    "eks.amazonaws.com/pod-readiness-gate-inject" = "enabled"
+  }
+
+  depends_on = [time_sleep.access_propagation]
+}
+
 resource "kubernetes_deployment_v1" "hellohttp" {
   count = local.k8s_count
 
@@ -54,12 +74,28 @@ resource "kubernetes_deployment_v1" "hellohttp" {
       match_labels = local.app_labels
     }
 
+    # Part 2: replace one pod at a time and never drop below `replicas`
+    # ready pods, regardless of how percentages would round.
+    strategy {
+      type = "RollingUpdate"
+      rolling_update {
+        max_surge       = 1
+        max_unavailable = 0
+      }
+    }
+
     template {
       metadata {
         labels = local.app_labels
       }
 
       spec {
+        # Part 3 lives in the app: on SIGTERM it keeps serving for 15s while
+        # the ALB deregisters the pod, then drains for up to 10s (Listen() in
+        # src/lib/routes). The grace period must cover both, or Kubernetes
+        # kills the process mid-drain.
+        termination_grace_period_seconds = 30
+
         container {
           name  = "hellohttp"
           image = "${aws_ecr_repository.hellohttp.repository_url}:${var.image_tag}"
@@ -97,7 +133,8 @@ resource "kubernetes_deployment_v1" "hellohttp" {
     ignore_changes = [spec[0].template[0].spec[0].container[0].image]
   }
 
-  depends_on = [time_sleep.access_propagation]
+  # The namespace label must exist before pods are created to get the gate.
+  depends_on = [kubernetes_labels.default_namespace]
 }
 
 resource "kubernetes_service_v1" "hellohttp" {
