@@ -26,6 +26,17 @@ variable "vpc_cidr" {
   default = "10.0.0.0/16"
 }
 
+# Tag of the hellohttp image in ECR to deploy.
+variable "image_tag" {
+  type    = string
+  default = "latest"
+}
+
+variable "replicas" {
+  type    = number
+  default = 2
+}
+
 # IAM users/roles that get cluster-admin via EKS access entries.
 variable "admin_principal_arns" {
   type    = list(string)
