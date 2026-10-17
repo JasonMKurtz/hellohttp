@@ -1,4 +1,4 @@
-# Node service account: what Autopilot's nodes run as. The default (the
+# Node service account: what the nodes run as. The default (the
 # Compute Engine default service account) has Owner on this project, far
 # more than nodes need.
 resource "google_service_account" "node" {

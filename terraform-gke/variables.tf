@@ -3,10 +3,48 @@ variable "project" {
   default = "hellohttp-a"
 }
 
-# Madrid.
+# The free tier's e2-micro VM and 30 GB disk only apply in us-central1,
+# us-west1, and us-east1.
 variable "region" {
   type    = string
-  default = "europe-southwest1"
+  default = "us-central1"
+}
+
+# A zonal cluster (one zone) instead of a regional one: GKE's free tier
+# covers the management fee of one zonal or Autopilot cluster, and the
+# nodes don't get tripled across three zones.
+variable "zone" {
+  type    = string
+  default = "us-central1-a"
+}
+
+# e2-micro is free (one per billing account) but has only 1 GB of RAM, much
+# of it used by GKE's own pods. If pods stay Pending for lack of memory, use
+# e2-small with node_spot = true (~$4/month).
+variable "node_machine_type" {
+  type    = string
+  default = "e2-micro"
+}
+
+# Spot VMs are 60-90% cheaper but can be stopped at any time. The free tier
+# doesn't apply to them, so leave this off for e2-micro.
+variable "node_spot" {
+  type    = bool
+  default = false
+}
+
+# The load balancer has no free tier (~$18/month). Without it, the app is
+# reached on node_port of the node's public IP. Turn it on to try the
+# Ingress; you pay by the hour, so turn it back off afterwards.
+variable "ingress_enabled" {
+  type    = bool
+  default = false
+}
+
+# Port the app is reachable on, on every node (30000-32767).
+variable "node_port" {
+  type    = number
+  default = 30080
 }
 
 variable "cluster_name" {
@@ -14,9 +52,9 @@ variable "cluster_name" {
   default = "hellohttp"
 }
 
-# Off switch for everything that costs money. false removes the cluster,
-# which also removes its nodes and the load balancer. The network, service
-# account, and Artifact Registry repo (free or near-free) are kept.
+# Off switch for the cluster. false removes it, which also removes its node
+# and the load balancer (if ingress_enabled). The network, service account,
+# and Artifact Registry repo (free or near-free) are kept.
 variable "cluster_enabled" {
   type    = bool
   default = true

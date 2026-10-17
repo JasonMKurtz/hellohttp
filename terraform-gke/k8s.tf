@@ -1,6 +1,6 @@
 # Kubernetes objects managed by Terraform. Because they depend on the
 # cluster, `terraform destroy` (or cluster_enabled=false) deletes them first,
-# and GKE removes the load balancer before the cluster goes away.
+# and GKE removes any load balancer before the cluster goes away.
 
 # Your gcloud login (application default credentials), which GKE also
 # accepts as a Kubernetes token. No CLI plugin needed, unlike EKS.
@@ -12,7 +12,7 @@ data "google_client_config" "default" {}
 # reading the live cluster from the GKE API whenever it exists. (The
 # google_container_cluster data source errors if the cluster is missing.)
 data "http" "live_cluster" {
-  url = "https://container.googleapis.com/v1/projects/${var.project}/locations/${var.region}/clusters/${var.cluster_name}"
+  url = "https://container.googleapis.com/v1/projects/${var.project}/locations/${var.zone}/clusters/${var.cluster_name}"
 
   request_headers = {
     Authorization       = "Bearer ${data.google_client_config.default.access_token}"
@@ -37,6 +37,7 @@ provider "kubernetes" {
 
 locals {
   k8s_count      = var.cluster_enabled ? 1 : 0
+  ingress_count  = var.cluster_enabled && var.ingress_enabled ? 1 : 0
   app_labels     = { app = "hellohttp" }
   container_port = 5000 # passed to the app as PORT (its default is 8080)
   image_repo     = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.hellohttp.repository_id}/hellohttp"
@@ -75,9 +76,9 @@ resource "kubernetes_deployment_v1" "hellohttp" {
 
       spec {
         # Part 3 lives in the app: on SIGTERM it keeps serving for 15s while
-        # the load balancer stops sending it traffic, then drains for up to
-        # 10s (Listen() in src/lib/routes). The grace period must cover
-        # both, or Kubernetes kills the process mid-drain.
+        # kube-proxy (or the load balancer) stops sending it traffic, then
+        # drains for up to 10s (Listen() in src/lib/routes). The grace period
+        # must cover both, or Kubernetes kills the process mid-drain.
         termination_grace_period_seconds = 30
 
         container {
@@ -102,16 +103,20 @@ resource "kubernetes_deployment_v1" "hellohttp" {
             }
           }
 
-          # Autopilot bills by requests, and sets limits equal to them.
-          # These are its minimums for the general-purpose compute class.
+          # What the scheduler reserves on the node for each pod. Kept small
+          # so two pods, plus a third during a rollout, fit on an e2-micro.
           resources {
             requests = {
-              cpu    = "50m"
+              cpu    = "10m"
+              memory = "32Mi"
+            }
+            limits = {
               memory = "64Mi"
             }
           }
 
-          # The load balancer's health check copies this path.
+          # Only Ready pods get traffic. A load balancer's health check also
+          # copies this path.
           readiness_probe {
             http_get {
               path = "/version"
@@ -133,12 +138,15 @@ resource "kubernetes_deployment_v1" "hellohttp" {
   }
 }
 
+# A NodePort Service: every node listens on node_port and forwards to a
+# Ready pod, on whichever node it runs. It also gets a ClusterIP for traffic
+# inside the cluster, and an Ingress can use it as a backend.
 resource "kubernetes_service_v1" "hellohttp" {
   count = local.k8s_count
 
   metadata {
     name = "hellohttp"
-    annotations = {
+    annotations = var.ingress_enabled ? {
       # Container-native load balancing: the load balancer sends traffic to
       # pod IPs directly (through a "network endpoint group") instead of
       # bouncing through nodes. Part 2: GKE then adds a readiness gate to
@@ -146,16 +154,17 @@ resource "kubernetes_service_v1" "hellohttp" {
       # health check passes, not just its own readiness probe. (On EKS this
       # took a namespace label.)
       "cloud.google.com/neg" = jsonencode({ ingress = true })
-    }
+    } : {}
   }
 
   spec {
-    type     = "ClusterIP"
+    type     = "NodePort"
     selector = local.app_labels
 
     port {
       port        = 80
       target_port = local.container_port
+      node_port   = var.node_port
     }
   }
 }
@@ -164,7 +173,7 @@ resource "kubernetes_service_v1" "hellohttp" {
 # Load Balancer with a public IP. It takes a few minutes after the IP shows
 # up before requests stop returning 404/502.
 resource "kubernetes_ingress_v1" "hellohttp" {
-  count = local.k8s_count
+  count = local.ingress_count
 
   metadata {
     name = "hellohttp"
@@ -186,4 +195,12 @@ resource "kubernetes_ingress_v1" "hellohttp" {
 
   # Wait for the load balancer so its IP is available as an output.
   wait_for_load_balancer = true
+}
+
+# For the app_url output: the node's public IP. It changes when GKE
+# replaces the node (upgrades, repairs), so re-run `terraform refresh`.
+data "kubernetes_nodes" "all" {
+  count = local.k8s_count
+
+  depends_on = [google_container_node_pool.default]
 }

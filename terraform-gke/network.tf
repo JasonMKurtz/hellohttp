@@ -1,10 +1,8 @@
 # A VPC with one subnet. Unlike AWS, GCP VPCs are global and subnets are
-# regional (not per-zone), so one subnet covers all three zones.
+# regional (not per-zone).
 #
-# Nodes are private (no public IPs) and there's no Cloud NAT, so this costs
-# nothing while idle. Private Google Access lets them pull images from
-# Artifact Registry anyway. Incoming traffic arrives through the load
-# balancer, which needs no route out.
+# The node has a public IP, which is how you reach the app without a load
+# balancer, and it reaches the internet through it. So there's no Cloud NAT.
 
 resource "google_compute_network" "this" {
   name                    = var.cluster_name
@@ -21,7 +19,7 @@ resource "google_compute_subnetwork" "this" {
   private_ip_google_access = true
 
   # GKE is VPC-native: every pod and Service gets a real VPC IP from these
-  # ranges, so the load balancer can send traffic straight to pods.
+  # ranges, so a load balancer can send traffic straight to pods.
   secondary_ip_range {
     range_name    = "pods"
     ip_cidr_range = "10.4.0.0/14"
@@ -31,4 +29,20 @@ resource "google_compute_subnetwork" "this" {
     range_name    = "services"
     ip_cidr_range = "10.8.0.0/20"
   }
+}
+
+# GCP firewalls deny incoming traffic by default. Open the app's NodePort on
+# the nodes (picked by network tag) to the internet. GKE adds its own rules
+# for everything else, including load balancer health checks.
+resource "google_compute_firewall" "node_port" {
+  name    = "${var.cluster_name}-node-port"
+  network = google_compute_network.this.id
+
+  allow {
+    protocol = "tcp"
+    ports    = [tostring(var.node_port)]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = [local.node_tag]
 }

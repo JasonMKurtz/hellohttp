@@ -1,17 +1,18 @@
 # terraform-gke
 
-Runs hellohttp on GKE Autopilot in GCP project `hellohttp-a`,
-europe-southwest1 (Madrid). A separate stack (own state) from the EKS one in
+Runs hellohttp on GKE in GCP project `hellohttp-a`, sized to fit GCP's free
+tier: a Standard zonal cluster in us-central1-a with one e2-micro node, and
+no load balancer. A separate stack (own state) from the EKS one in
 `../terraform`, built the same way so the two can be compared file by file:
 
 | AWS (`../terraform`) | GCP (here) | |
 |---|---|---|
-| `vpc.tf` | `network.tf` | VPC + one regional subnet, private nodes, no NAT |
+| `vpc.tf` | `network.tf` | VPC + one regional subnet, firewall rule for the NodePort |
 | `iam.tf` | `iam.tf` | Node service account (no cluster role: GKE uses its own) |
-| `eks.tf` | `gke.tf` | Autopilot cluster (toggle with `cluster_enabled`) |
+| `eks.tf` | `gke.tf` | Standard cluster + one-node pool (toggle with `cluster_enabled`) |
 | `ecr.tf` | `registry.tf` | Artifact Registry `hellohttp` repo |
 | `budget.tf` | `budget.tf` | $10/month budget on the billing account |
-| `k8s.tf` | `k8s.tf` | Deployment, Service, and an Ingress GKE turns into a load balancer |
+| `k8s.tf` | `k8s.tf` | Deployment, NodePort Service, optional Ingress |
 | | `apis.tf` | Turns on the GCP services used here |
 | `github.tf` | | Not yet: CI still deploys to EKS only |
 
@@ -48,30 +49,53 @@ $ kubectl set image deployment/hellohttp hellohttp=$REPO:$TAG
 $ kubectl rollout status deployment/hellohttp
 $ curl $(terraform -chdir=terraform-gke output -raw app_url)/version
 ```
-The load balancer needs a few minutes after its first deploy before it stops
-returning 404/502.
 
 Terraform ignores the Deployment's image after creating it, so applies don't
 roll back what you deployed. A recreated Deployment (e.g. after a pause)
 starts from `:latest`.
 
+`app_url` is the node's public IP and the NodePort (30080). GKE replaces the
+node on upgrades and repairs, which changes the IP; run `terraform refresh`
+to update the output.
+
 ### Cost
-- Cluster management fee ($0.10/hour): covered by GKE's free tier, which
-  pays for one Autopilot or zonal cluster per billing account.
-- Pods: billed by their requests (50m CPU, 64Mi each). About $5/month for 2.
-- Load balancer: about $18/month, the biggest piece. It exists as long as the
-  Ingress does.
+Free, as long as this is the only thing using the free tier on the billing
+account:
+- Cluster management fee ($0.10/hour): covered by GKE's monthly free-tier
+  credit, for one zonal or Autopilot cluster.
+- The e2-micro node and its 30 GB standard disk: Compute Engine's free tier,
+  one VM per billing account, us-central1/us-west1/us-east1 only.
+- Artifact Registry (0.5 GB) and Cloud Build (2,500 build-minutes/month):
+  free tiers.
 
-So roughly $25/month while running, over the $10 budget. Pause when you're
-not using it.
+Not free, and small: the node's public IPv4 address may be billed (about
+$3.65/month), and outbound traffic over 1 GB/month.
 
-### Pause (stop paying)
+If pods stay `Pending` with "Insufficient memory", the e2-micro is too small
+for GKE's system pods plus the app. Switch to a spot e2-small (~$4/month):
+```
+$ terraform apply -var node_machine_type=e2-small -var node_spot=true
+```
+
+### Try the load balancer
+The Ingress (an external Application Load Balancer, ~$0.025/hour) is off by
+default. Turn it on to try container-native load balancing and
+zero-downtime rollouts through it, then back off:
+```
+$ terraform apply -var ingress_enabled=true    # app_url becomes the LB's IP
+$ terraform apply                              # off again
+```
+It takes a few minutes after the IP shows up before requests stop returning
+404/502.
+
+### Pause
 ```
 $ terraform apply -var cluster_enabled=false   # off
-$ terraform apply                              # back on (~10 min); new app_url
+$ terraform apply                              # back on (~10 min)
 ```
-Terraform deletes the Ingress before the cluster, so GKE removes the load
-balancer first. The network, service account, and images are kept.
+Removes the cluster and node (and the load balancer, if on). The network,
+service account, and images are kept. Mostly useful if you need the free
+tier for something else.
 
 ### Destroy
 ```
@@ -80,8 +104,9 @@ $ terraform destroy
 
 Anything you create with `kubectl` instead of Terraform (LoadBalancer
 Services, Ingresses, PVCs) still creates GCP resources Terraform doesn't
-know about. Delete those yourself before pausing or destroying, or they keep
-billing and block the network from being deleted.
+know about, and none of them are free. Delete those yourself before pausing
+or destroying, or they keep billing and block the network from being
+deleted.
 
 State is local (`terraform.tfstate`, gitignored). Don't delete it while
 infrastructure exists, or Terraform loses track of what it created.
