@@ -12,7 +12,7 @@ RUN go mod download
 COPY src/ src/
 # Reported by /version. CI passes the git commit.
 ARG VERSION=dev
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags "-X main.version=$VERSION" -o /hello ./src/{$APP}
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags "-X main.version=$VERSION" -o /hello ./src/${APP}
 
 FROM scratch
 COPY --from=builder /hello /
