@@ -1,0 +1,19 @@
+# Builds docker/hello2/Dockerfile on Cloud Build and pushes it to Artifact
+# Registry, so you don't need Docker locally. Cloud Build machines are
+# amd64, like GKE's nodes. The source is a `git archive` of go.mod, go.sum,
+# src/, and docker/; see README.md for the commands.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    # The Dockerfile uses BuildKit's $BUILDPLATFORM/$TARGETARCH.
+    env: ["DOCKER_BUILDKIT=1"]
+    args:
+      - build
+      - --build-arg=VERSION=${_VERSION}
+      - --file=docker/hello2/Dockerfile
+      - --tag=${_IMAGE}
+      - .
+
+images: ["${_IMAGE}"]
+
+substitutions:
+  _VERSION: dev
