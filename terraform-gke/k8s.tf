@@ -40,25 +40,22 @@ locals {
   ingress_count = var.cluster_enabled && var.ingress_enabled ? 1 : 0
   registry      = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.hellohttp.repository_id}"
   image_repo    = "${local.registry}/hellohttp"
+  app_port      = 5000 # passed to every app as PORT (their default is 8080)
 
   # The apps to run: one Deployment and one Service each, named after the
   # key and labeled app = <key>. Only what differs between them is here.
   apps = {
     hellohttp = {
-      image        = "hellohttp"
-      port         = 5000 # passed to the app as PORT (its default is 8080)
-      set_port_env = true
-      probe_path   = "/version"
-      replicas     = var.replicas
-      node_port    = var.node_port # also reachable on the node's public IP
+      image      = "hellohttp"
+      probe_path = "/version"
+      replicas   = var.replicas
+      node_port  = var.node_port # also reachable on the node's public IP
     }
     hellohttp-backend = {
-      image        = "hellohttp-backend"
-      port         = 80 # hardcoded in the app; it ignores PORT
-      set_port_env = false
-      probe_path   = "/api/foo" # its only route, so also the LB health check
-      replicas     = 1
-      node_port    = null # ClusterIP only
+      image      = "hellohttp-backend"
+      probe_path = "/api/foo" # its only route, so also the LB health check
+      replicas   = 1
+      node_port  = null # ClusterIP only
     }
   }
 
@@ -109,16 +106,12 @@ resource "kubernetes_deployment_v1" "app" {
           image = "${local.registry}/${each.value.image}:${var.image_tag}"
 
           port {
-            container_port = each.value.port
+            container_port = local.app_port
           }
 
-          # Only for apps that read PORT: a dynamic block makes 0 or 1 copies.
-          dynamic "env" {
-            for_each = each.value.set_port_env ? [1] : []
-            content {
-              name  = "PORT"
-              value = tostring(each.value.port)
-            }
+          env {
+            name  = "PORT"
+            value = tostring(local.app_port)
           }
 
           env {
@@ -148,7 +141,7 @@ resource "kubernetes_deployment_v1" "app" {
           readiness_probe {
             http_get {
               path = each.value.probe_path
-              port = each.value.port
+              port = local.app_port
             }
           }
         }
@@ -183,7 +176,7 @@ resource "kubernetes_service_v1" "app" {
 
     port {
       port        = 80
-      target_port = each.value.port
+      target_port = local.app_port
       node_port   = each.value.node_port
     }
   }
