@@ -9,6 +9,7 @@ steps:
     args:
       - build
       - --build-arg=VERSION=${_VERSION}
+      - --build-arg=APP=${_APP}
       - --file=docker/hello2/Dockerfile
       - --tag=${_IMAGE}
       - .
@@ -17,3 +18,4 @@ images: ["${_IMAGE}"]
 
 substitutions:
   _VERSION: dev
+  _APP: hello
