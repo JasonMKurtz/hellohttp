@@ -36,26 +36,46 @@ provider "kubernetes" {
 }
 
 locals {
-  k8s_count      = var.cluster_enabled ? 1 : 0
-  ingress_count  = var.cluster_enabled && var.ingress_enabled ? 1 : 0
-  app_labels     = { app = "hellohttp" }
-  container_port = 5000 # passed to the app as PORT (its default is 8080)
-  image_repo     = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.hellohttp.repository_id}/hellohttp"
+  k8s_count     = var.cluster_enabled ? 1 : 0
+  ingress_count = var.cluster_enabled && var.ingress_enabled ? 1 : 0
+  registry      = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.hellohttp.repository_id}"
+  image_repo    = "${local.registry}/hellohttp"
+  app_port      = 5000 # passed to every app as PORT (their default is 8080)
+
+  # The apps to run: one Deployment and one Service each, named after the
+  # key and labeled app = <key>. Only what differs between them is here.
+  apps = {
+    hellohttp = {
+      image      = "hellohttp"
+      probe_path = "/version"
+      replicas   = var.replicas
+      node_port  = var.node_port # also reachable on the node's public IP
+    }
+    hellohttp-backend = {
+      image      = "hellohttp-backend"
+      probe_path = "/api/foo" # its only route, so also the LB health check
+      replicas   = 1
+      node_port  = null # ClusterIP only
+    }
+  }
+
+  # No apps when the cluster is off.
+  enabled_apps = var.cluster_enabled ? local.apps : {}
 }
 
-resource "kubernetes_deployment_v1" "hellohttp" {
-  count = local.k8s_count
+resource "kubernetes_deployment_v1" "app" {
+  for_each = local.enabled_apps
 
   metadata {
-    name   = "hellohttp"
-    labels = local.app_labels
+    name   = each.key
+    labels = { app = each.key }
   }
 
   spec {
-    replicas = var.replicas
+    replicas = each.value.replicas
 
     selector {
-      match_labels = local.app_labels
+      match_labels = { app = each.key }
     }
 
     # Zero-downtime rollouts, part 1: replace one pod at a time and never
@@ -71,7 +91,7 @@ resource "kubernetes_deployment_v1" "hellohttp" {
 
     template {
       metadata {
-        labels = local.app_labels
+        labels = { app = each.key }
       }
 
       spec {
@@ -82,16 +102,16 @@ resource "kubernetes_deployment_v1" "hellohttp" {
         termination_grace_period_seconds = 30
 
         container {
-          name  = "hellohttp"
-          image = "${local.image_repo}:${var.image_tag}"
+          name  = each.key
+          image = "${local.registry}/${each.value.image}:${var.image_tag}"
 
           port {
-            container_port = local.container_port
+            container_port = local.app_port
           }
 
           env {
             name  = "PORT"
-            value = tostring(local.container_port)
+            value = tostring(local.app_port)
           }
 
           env {
@@ -104,7 +124,8 @@ resource "kubernetes_deployment_v1" "hellohttp" {
           }
 
           # What the scheduler reserves on the node for each pod. Kept small
-          # so two pods, plus a third during a rollout, fit on one small node.
+          # so every app's pods, plus one extra during a rollout, fit on one
+          # small node.
           resources {
             requests = {
               cpu    = "10m"
@@ -116,11 +137,11 @@ resource "kubernetes_deployment_v1" "hellohttp" {
           }
 
           # Only Ready pods get traffic. A load balancer's health check also
-          # copies this path.
+          # copies this path; without a probe it checks GET /.
           readiness_probe {
             http_get {
-              path = "/version"
-              port = local.container_port
+              path = each.value.probe_path
+              port = local.app_port
             }
           }
         }
@@ -138,24 +159,25 @@ resource "kubernetes_deployment_v1" "hellohttp" {
   }
 }
 
-# A NodePort Service: every node listens on node_port and forwards to a
-# Ready pod, on whichever node it runs. It also gets a ClusterIP for traffic
-# inside the cluster, and an Ingress can use it as a backend.
-resource "kubernetes_service_v1" "hellohttp" {
-  count = local.k8s_count
+# With a node_port, a NodePort Service: every node listens on it and
+# forwards to a Ready pod, on whichever node it runs. Without one, a
+# ClusterIP Service, reachable only inside the cluster and by the load
+# balancer. Either way, an Ingress can use it as a backend.
+resource "kubernetes_service_v1" "app" {
+  for_each = local.enabled_apps
 
   metadata {
-    name = "hellohttp"
+    name = each.key
   }
 
   spec {
-    type     = "NodePort"
-    selector = local.app_labels
+    type     = each.value.node_port == null ? "ClusterIP" : "NodePort"
+    selector = { app = each.key }
 
     port {
       port        = 80
-      target_port = local.container_port
-      node_port   = var.node_port
+      target_port = local.app_port
+      node_port   = each.value.node_port
     }
   }
 
@@ -165,10 +187,26 @@ resource "kubernetes_service_v1" "hellohttp" {
   # group") instead of bouncing through nodes. Part 2: with an Ingress, GKE
   # then adds a readiness gate to each pod, so a new pod only counts as
   # Ready once the load balancer's health check passes, not just its own
-  # readiness probe. (On EKS this took a namespace label.)
+  # readiness probe. (On EKS this took a namespace label.) With an Ingress,
+  # GKE also records which endpoint groups it made in neg-status.
   lifecycle {
-    ignore_changes = [metadata[0].annotations["cloud.google.com/neg"]]
+    ignore_changes = [
+      metadata[0].annotations["cloud.google.com/neg"],
+      metadata[0].annotations["cloud.google.com/neg-status"],
+    ]
   }
+}
+
+# These were single resources before there was more than one app. Moving
+# them keeps Terraform from deleting and recreating the running ones.
+moved {
+  from = kubernetes_deployment_v1.hellohttp[0]
+  to   = kubernetes_deployment_v1.app["hellohttp"]
+}
+
+moved {
+  from = kubernetes_service_v1.hellohttp[0]
+  to   = kubernetes_service_v1.app["hellohttp"]
 }
 
 # GKE's built-in Ingress controller turns this into an external Application
@@ -185,11 +223,32 @@ resource "kubernetes_ingress_v1" "hellohttp" {
   }
 
   spec {
+    # Anything not matched below.
     default_backend {
       service {
-        name = kubernetes_service_v1.hellohttp[0].metadata[0].name
+        name = kubernetes_service_v1.app["hellohttp"].metadata[0].name
         port {
           number = 80
+        }
+      }
+    }
+
+    # /backend and everything under it. GKE's load balancer doesn't rewrite
+    # paths, so the backend sees /backend/api/foo, not /api/foo. That works
+    # because its routes are unanchored regexes, but /backend alone is a 404.
+    rule {
+      http {
+        path {
+          path      = "/backend"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = kubernetes_service_v1.app["hellohttp-backend"].metadata[0].name
+              port {
+                number = 80
+              }
+            }
+          }
         }
       }
     }

@@ -3,12 +3,23 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	routetypes "github.com/jasonmkurtz/hellohttp/src/lib/routes"
 )
 
+// Same as hello: $PORT, or 8080.
+func getPort() string {
+	port := os.Getenv("PORT")
+	if port != "" {
+		return port
+	}
+
+	return "8080"
+}
+
 func main() {
-	r := &routetypes.Routes{Port: "80"}
+	r := &routetypes.Routes{Port: getPort()}
 	r.Routes = []routetypes.Route{
 		routetypes.Route{Route: "/api/foo", Handler: HandleFoo},
 	}
