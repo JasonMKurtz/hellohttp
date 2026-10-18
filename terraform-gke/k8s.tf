@@ -223,11 +223,32 @@ resource "kubernetes_ingress_v1" "hellohttp" {
   }
 
   spec {
+    # Anything not matched below.
     default_backend {
       service {
         name = kubernetes_service_v1.app["hellohttp"].metadata[0].name
         port {
           number = 80
+        }
+      }
+    }
+
+    # /backend and everything under it. GKE's load balancer doesn't rewrite
+    # paths, so the backend sees /backend/api/foo, not /api/foo. That works
+    # because its routes are unanchored regexes, but /backend alone is a 404.
+    rule {
+      http {
+        path {
+          path      = "/backend"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = kubernetes_service_v1.app["hellohttp-backend"].metadata[0].name
+              port {
+                number = 80
+              }
+            }
+          }
         }
       }
     }
