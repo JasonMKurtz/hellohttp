@@ -174,6 +174,12 @@ resource "kubernetes_service_v1" "app" {
     type     = each.value.node_port == null ? "ClusterIP" : "NodePort"
     selector = { app = each.key }
 
+    # A Service gets only an IPv4 ClusterIP unless it asks for both. With
+    # both, a NodePort also listens on the node's IPv6 address. "Prefer"
+    # rather than "Require" so it still works on an IPv4-only cluster.
+    ip_family_policy = "PreferDualStack"
+    ip_families      = ["IPv4", "IPv6"]
+
     port {
       port        = 80
       target_port = local.app_port
@@ -264,4 +270,15 @@ data "kubernetes_nodes" "all" {
   count = local.k8s_count
 
   depends_on = [google_container_node_pool.default]
+}
+
+# For the app_url_ipv6 output: the node's public IPv6 address. Kubernetes
+# may not list it among the node's addresses, so read it from the node's VM
+# (GKE names the Kubernetes node after it). Like the IPv4 one, it changes
+# when GKE replaces the node.
+data "google_compute_instance" "node" {
+  count = local.k8s_count
+
+  name = data.kubernetes_nodes.all[0].nodes[0].metadata[0].name
+  zone = var.zone
 }

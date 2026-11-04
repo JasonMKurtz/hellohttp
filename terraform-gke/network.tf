@@ -18,6 +18,14 @@ resource "google_compute_subnetwork" "this" {
   ip_cidr_range            = var.subnet_cidr
   private_ip_google_access = true
 
+  # Dual-stack: besides the IPv4 range above, Google gives the subnet a /64
+  # of IPv6 (you don't pick it; see the subnet_ipv6_prefix output). EXTERNAL
+  # makes those addresses reachable from the internet; INTERNAL would keep
+  # them inside the VPC. GKE takes the IPv6 addresses for nodes, pods and
+  # Services from it, so it needs no secondary ranges.
+  stack_type       = "IPV4_IPV6"
+  ipv6_access_type = "EXTERNAL"
+
   # GKE is VPC-native: every pod and Service gets a real VPC IP from these
   # ranges, so a load balancer can send traffic straight to pods.
   secondary_ip_range {
@@ -44,5 +52,20 @@ resource "google_compute_firewall" "node_port" {
   }
 
   source_ranges = ["0.0.0.0/0"]
+  target_tags   = [local.node_tag]
+}
+
+# The same for IPv6. A firewall rule covers one IP family: 0.0.0.0/0 above
+# doesn't match IPv6 traffic, and IPv4 and IPv6 ranges can't share a rule.
+resource "google_compute_firewall" "node_port_ipv6" {
+  name    = "${var.cluster_name}-node-port-ipv6"
+  network = google_compute_network.this.id
+
+  allow {
+    protocol = "tcp"
+    ports    = [tostring(var.node_port)]
+  }
+
+  source_ranges = ["::/0"]
   target_tags   = [local.node_tag]
 }
