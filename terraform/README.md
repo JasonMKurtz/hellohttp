@@ -6,6 +6,9 @@ Creates everything needed to run hellohttp on AWS (eu-north-1):
 - `iam.tf`: EKS cluster role and Auto Mode node role
 - `eks.tf`: EKS Auto Mode cluster, plus cluster-admin access for `admin_principal_arns`
   (toggle with `cluster_enabled`)
+- `nodepool.tf`: the Karpenter NodePool app pods run on: small t3/t3a
+  instances, spot first. Auto Mode's built-in general-purpose pool (on-demand
+  c/m/r, .large and up) is turned off in `eks.tf`.
 - `ecr.tf`: `hellohttp` image repository
 - `github.tf`: OIDC trust and a role GitHub Actions uses to push images and deploy
 - `budget.tf`: account-wide $10/month AWS Budget that emails `budget_email`

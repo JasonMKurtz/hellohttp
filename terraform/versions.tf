@@ -14,6 +14,13 @@ terraform {
       source  = "hashicorp/time"
       version = "~> 0.13"
     }
+    # For the Karpenter NodePool (nodepool.tf). Unlike the kubernetes
+    # provider's kubernetes_manifest, it doesn't need the cluster to exist at
+    # plan time, so the cluster can still be created in the same apply.
+    kubectl = {
+      source  = "alekc/kubectl"
+      version = "~> 2.4"
+    }
   }
 }
 

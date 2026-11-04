@@ -15,8 +15,10 @@ resource "aws_eks_cluster" "this" {
   }
 
   compute_config {
-    enabled       = true
-    node_pools    = ["general-purpose", "system"]
+    enabled = true
+    # Not "general-purpose": it only allows c/m/r .large-and-up on-demand
+    # instances. App pods run on the "small" pool in nodepool.tf instead.
+    node_pools    = ["system"]
     node_role_arn = aws_iam_role.node.arn
   }
 
