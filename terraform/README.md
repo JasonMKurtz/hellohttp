@@ -2,7 +2,7 @@
 
 Creates everything needed to run hellohttp on AWS (eu-north-1):
 
-- `vpc.tf`: VPC with 3 public subnets (no NAT gateway)
+- `vpc.tf`: dual-stack (IPv4 + IPv6) VPC with 3 public subnets (no NAT gateway)
 - `iam.tf`: EKS cluster role and Auto Mode node role
 - `eks.tf`: EKS Auto Mode cluster, plus cluster-admin access for `admin_principal_arns`
   (toggle with `cluster_enabled`)
@@ -42,6 +42,24 @@ $ docker buildx build --platform linux/amd64 -f docker/hello2/Dockerfile -t $REP
 $ kubectl set image deployment/hellohttp hellohttp=$REPO:v1
 $ curl $(terraform output -raw app_url)/version
 ```
+
+### IPv6
+The cluster is IPv6 (`ip_family = "ipv6"` in `eks.tf`). EKS doesn't do
+dual-stack pods, so pods and Services only get IPv6 addresses, from the
+VPC's /56 (a /64 per subnet). Nodes keep a public IPv4 too, for IPv4-only
+destinations, since there's no NAT.
+
+The load balancer's front end is IPv6-only by default, so `app_url` only
+resolves to IPv6 addresses and IPv4-only clients can't connect:
+```
+$ curl -6 $(terraform output -raw app_url)/whoami
+$ terraform apply -var alb_ip_address_type=dualstack   # also accept IPv4
+```
+`/whoami` reports the load balancer as the client (it opens its own
+connection to the pod); the real client address is in `X-Forwarded-For`.
+
+Switching an existing cluster between IPv4 and IPv6 replaces it, so pause
+first (below).
 
 ### Pause (stop paying)
 Nearly all the cost is the cluster: the EKS control plane (~$73/month),

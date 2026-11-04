@@ -21,6 +21,12 @@ resource "aws_eks_cluster" "this" {
   }
 
   kubernetes_network_config {
+    # An IPv6 cluster: pods and Services get only IPv6 addresses (EKS has no
+    # dual-stack pods, unlike GKE). Pods still reach IPv4 destinations
+    # through their node's IPv4 address. Can't be changed after the cluster
+    # is created; changing it replaces the cluster.
+    ip_family = "ipv6"
+
     elastic_load_balancing {
       enabled = true
     }

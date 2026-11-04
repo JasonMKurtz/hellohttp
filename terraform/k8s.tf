@@ -181,6 +181,11 @@ resource "kubernetes_ingress_class_v1" "alb" {
 }
 
 # Creates an internet-facing Application Load Balancer.
+#
+# Its front end is IPv6-only by default (alb_ip_address_type): its DNS name
+# (app_url) has only AAAA records, so IPv4-only clients can't reach it. The
+# ALB ends each connection and opens a new one to a pod, so the app sees the
+# ALB's address as the client; the real one is in X-Forwarded-For.
 resource "kubernetes_ingress_v1" "hellohttp" {
   count = local.k8s_count
 
@@ -189,6 +194,10 @@ resource "kubernetes_ingress_v1" "hellohttp" {
     annotations = {
       "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
       "alb.ingress.kubernetes.io/healthcheck-path" = "/version"
+      "alb.ingress.kubernetes.io/ip-address-type"  = var.alb_ip_address_type
+      # Send traffic straight to pod IPs. Pods only have IPv6 addresses, and
+      # the alternative (node ports) doesn't support IPv6 targets.
+      "alb.ingress.kubernetes.io/target-type" = "ip"
     }
   }
 
