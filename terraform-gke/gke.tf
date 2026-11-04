@@ -47,9 +47,13 @@ resource "google_container_cluster" "this" {
   # experiment.
   #
   # The Cloud Logging and Monitoring agents: `kubectl logs` still works
-  # without them; logs just aren't kept or shown in the console.
-  logging_service    = "none"
-  monitoring_service = "none"
+  # without them; logs just aren't kept or shown in the console. An empty
+  # component list turns each one off. (The older logging_service and
+  # monitoring_service = "none" did the same, but GKE now rejects them
+  # alongside these blocks.)
+  logging_config {
+    enable_components = []
+  }
 
   monitoring_config {
     enable_components = []
