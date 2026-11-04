@@ -19,7 +19,17 @@ resource "google_container_cluster" "this" {
   ip_allocation_policy {
     cluster_secondary_range_name  = "pods"
     services_secondary_range_name = "services"
+
+    # Dual-stack: nodes, pods and Services can also get an IPv6 address, from
+    # the subnet's /64. Each Service still has to ask for one (k8s.tf).
+    stack_type = "IPV4_IPV6"
   }
+
+  # Dual-stack needs GKE Dataplane V2 (eBPF-based networking, built on
+  # Cilium), which replaces kube-proxy. It can only be chosen when the
+  # cluster is created. It runs its own agent (anetd) on every node, so if
+  # pods get stuck Pending on the e2-small, this is a likely cause.
+  datapath_provider = "ADVANCED_DATAPATH"
 
   # A cluster can't be created without nodes, so GKE makes a default node
   # pool, which Terraform deletes right away in favor of the one below. That
@@ -37,9 +47,13 @@ resource "google_container_cluster" "this" {
   # experiment.
   #
   # The Cloud Logging and Monitoring agents: `kubectl logs` still works
-  # without them; logs just aren't kept or shown in the console.
-  logging_service    = "none"
-  monitoring_service = "none"
+  # without them; logs just aren't kept or shown in the console. An empty
+  # component list turns each one off. (The older logging_service and
+  # monitoring_service = "none" did the same, but GKE now rejects them
+  # alongside these blocks.)
+  logging_config {
+    enable_components = []
+  }
 
   monitoring_config {
     enable_components = []

@@ -24,6 +24,20 @@ output "app_url" {
   )
 }
 
+# The node's public IPv6 address and the NodePort. IPv6 addresses go in
+# brackets in a URL. Test with `curl -6`; check first that your own network
+# has IPv6 (`curl -6 https://ifconfig.co`).
+output "app_url_ipv6" {
+  value = !var.cluster_enabled ? null : (
+    "http://[${try(data.google_compute_instance.node[0].network_interface[0].ipv6_access_config[0].external_ipv6, "")}]:${var.node_port}"
+  )
+}
+
+# The /64 Google gave the subnet.
+output "subnet_ipv6_prefix" {
+  value = google_compute_subnetwork.this.external_ipv6_prefix
+}
+
 output "configure_kubectl" {
   value = var.cluster_enabled ? "gcloud container clusters get-credentials ${var.cluster_name} --zone ${var.zone} --project ${var.project}" : null
 }
